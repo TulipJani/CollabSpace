@@ -2,14 +2,13 @@ const express = require("express");
 const session=require("express-session");
 const auth=require("../log_auth/auth");
 const fs = require('fs');
+const Workspace =require('../models/workspace');
 const nodemailer = require('nodemailer');
 
 const passport = require('passport');
 function isLoggedIn(req,res,next){
     req.user?next():res.sendStatus(401);
 }
-
-
 const bodyParser = require("body-parser");
 const collection = require("../models/config");
 const Project = require("../models/user");
@@ -44,23 +43,45 @@ const transporter = nodemailer.createTransport({
 
 app.get('/home', isLoggedIn, async (req, res) => {
   
-  const {  displayName, email } = req.user; 
+  const { displayName, email } = req.user; 
   const guser = new Glog({
       displayName,
       email
   });
+  
 
   try {
-     
-      await guser.save();
+    
+    await guser.save();      
       sendCongratulatoryEmail(email);
       const projects = await Project.find();
-      res.render('home', {displayName, projects}); // Passing the user's ID to the view
+      res.render('home', {displayName, projects});
   } catch (error) {
-      console.error("Error in /dash route:", error);
+      console.error("Error in /home route:", error);
       res.status(500).send("Internal Server Error");
   }
 });
+
+app.post('/home', async (req, res) => {
+  // Retrieve workspace name from request body
+  const { workspaceName } = req.body;
+
+  try {
+    // Create a new workspace document
+    const newWorkspace = new Workspace({
+      workspaceName
+    });
+
+    // Save the new workspace document to the database
+    await newWorkspace.save();
+
+    res.send('Workspace created successfully');
+  } catch (error) {
+    console.error("Error saving workspace:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 
 function sendCongratulatoryEmail(userEmail) {
   // Email content
