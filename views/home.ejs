@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Your existing CSS styles */
+      .dialog {
+        position: absolute;
+        top: 0%;
+        left: 0%;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .dialog-content {
+        background-color: #1c1c1c;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        max-width: 400px;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+
+  <body class="bg-[#202020]">
+    <!-- =============== Navigation ================ -->
+    <div class="main w-full flex items-center justify-center">
+      <div
+        class="relative w-96 z-20 h-full bg-[#202020] transition-all duration-200 overflow-hidden p-5 py-10"
+      >
+        <ul class="w-full h-full">
+          <li
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+          >
+            <a
+              class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
+              href="#"
+            >
+              <span
+                class="w-16 h-16 flex items-center justify-center text-gray-400"
+              >
+                <ion-icon name="person-outline" class="text-4xl"></ion-icon>
+              </span>
+              <span class="ml-4">Username</span>
+            </a>
+          </li>
+          <li
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+          >
+            <a
+              class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
+              href="#"
+            >
+              <span
+                class="w-16 h-16 flex items-center justify-center text-gray-400"
+              >
+                <ion-icon name="power" class="text-4xl"></ion-icon>
+              </span>
+              <span class="ml-4">Get Started</span>
+            </a>
+          </li>
+          <li
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+          >
+            <a
+              class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
+              href="#"
+            >
+              <span
+                class="w-16 h-16 flex items-center justify-center text-gray-400"
+              >
+                <ion-icon name="home-outline" class="text-4xl"></ion-icon>
+              </span>
+              <span class="ml-4">Home</span>
+            </a>
+          </li>
+          <li
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+          >
+            <a
+              class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
+              href="#"
+            >
+              <span
+                class="w-16 h-16 flex items-center justify-center text-gray-400"
+              >
+                <ion-icon name="people-outline" class="text-4xl"></ion-icon>
+              </span>
+              <span class="ml-4">Workspace</span>
+            </a>
+          </li>
+          <li
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+          >
+            <a
+              class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
+              href="#"
+            >
+              <span
+                class="w-16 h-16 flex items-center justify-center text-gray-400"
+              >
+                <ion-icon name="chatbubble-outline" class="text-4xl"></ion-icon>
+              </span>
+              <span class="ml-4">Private Space</span>
+            </a>
+          </li>
+          <li
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+          >
+            <a
+              class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
+              href="#"
+            >
+              <span
+                class="w-16 h-16 flex items-center justify-center text-gray-400"
+              >
+                <ion-icon name="settings-outline" class="text-4xl"></ion-icon>
+              </span>
+              <span class="ml-4">Logout</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div
+        class="content relative z-10 w-full h-screen bg-[#191919] flex flex-col items-center justify-center"
+      >
+        <div class="p-4 py-20 flex flex-col items-center justify-center w-full">
+          <h1 class="text-4xl md:text-5xl font-bold text-[#d3d3d3] mb-6">
+            Welcome <%= displayName %>
+          </h1>
+          <div class="gap-4">
+            <button
+              class="relative z-40 bg-[#2a2a2a] hover:bg-[#1c1c1c] text-[#d3d3d3] font-semibold py-3 px-6 rounded-full transition-colors duration-300"
+            >
+              Create Workspace
+            </button>
+            <button
+              id="openDialogBtn"
+              class="relative z-40 bg-[#2a2a2a] hover:bg-[#1c1c1c] text-[#d3d3d3] font-semibold py-3 px-6 rounded-full transition-colors duration-300"
+            >
+              Add Members
+            </button>
+            <div id="dialog" class="dialog hidden z-50">
+              <div class="dialog-content rounded-lg p-8 shadow-lg">
+                <h2 class="text-2xl font-bold mb-4 text-[#d3d3d3]">
+                  Invite Members
+                </h2>
+                <form id="inviteForm">
+                  <input
+                    type="email"
+                    id="emailInput"
+                    placeholder="Enter email"
+                    class="w-full p-2 mb-4 border border-[#141414] rounded bg-[#2c2c2c] text-white"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    class="relative z-40 bg-[#2a2a2a] hover:bg-[#1c1c1c] text-[#d3d3d3] font-semibold py-3 px-6 rounded-full transition-colors duration-300"
+                  >
+                    Invite
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dialog Box -->
+    </div>
+    <script>
+      // Get references to the button and dialog elements
+      const openDialogBtn = document.getElementById("openDialogBtn");
+      const dialog = document.getElementById("dialog");
+
+      // Function to close the dialog
+      const closeDialog = () => {
+        dialog.classList.add("hidden");
+      };
+
+      // Add click event listener to the button to open the dialog
+      openDialogBtn.addEventListener("click", () => {
+        // Show the dialog
+        dialog.classList.remove("hidden");
+
+        // Add event listener to close the dialog when anywhere else is clicked
+        document.addEventListener("click", (event) => {
+          if (
+            !dialog.contains(event.target) &&
+            event.target !== openDialogBtn
+          ) {
+            closeDialog();
+          }
+        });
+
+        // Add event listener to close the dialog when "Esc" key is pressed
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            closeDialog();
+          }
+        });
+      });
+    </script>
+
+    <!-- ====== ionicons ======= -->
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"
+    ></script>
+  </body>
+</html>
