@@ -99,6 +99,12 @@
               </span>
               <span class="ml-4">Workspace</span>
             </a>
+            <ul>
+              <% userWorkspaces.forEach(workspace => { %>
+                <li><%= workspace.workspaceName %></li>
+                <!-- Add more details about the workspace as needed -->
+              <% }); %>
+            </ul>
           </li>
 
           <li

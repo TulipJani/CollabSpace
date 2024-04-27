@@ -36,7 +36,7 @@
               >
                 <ion-icon name="person-outline" class="text-4xl"></ion-icon>
               </span>
-              <span class="ml-4"> {username}</span>
+              <span class="ml-4"><%= username %></span>
             </a>
           </li>
           <li
@@ -59,7 +59,7 @@
           >
             <a
               class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
-              href="#"
+              href="/home"
             >
               <span
                 class="w-16 h-16 flex items-center justify-center text-gray-400"
@@ -81,7 +81,8 @@
               >
                 <ion-icon name="people-outline" class="text-4xl"></ion-icon>
               </span>
-              <span class="ml-4">{workspaceName}</span>
+              <span class="ml-4">  <%= workspaceName %></span>
+            </span>
             </a>
           </li>
           <li
@@ -106,8 +107,16 @@
       >
         <div class="p-4 py-20 flex flex-col items-center justify-center w-full">
           <h1 class="mt-20 text-4xl md:text-5xl font-bold text-[#d3d3d3] mb-6">
-            {WorkspaceName}
+            <%= workspaceName %>
           </h1>
+          <div>
+            <h1 class="mt-20 text-4xl md:text-2xl font-bold text-[#d3d3d3] mb-6">Invite members</h1>
+            <form action="/workspace/<%= workspaceName %>/<%= username %>" method="POST">
+              <label class="mt-20 text-1xl md:text-2xl font-bold text-[#d3d3d3] mb-6" for="invitemem">write email</label>
+              <input class="mt-20 text-1xl md:text-2xl font-bold text-[#d3d3d3] mb-6" type="email" name="email">
+              <button class="mt-20 text-1xl md:text-2xl font-bold text-[#d3d3d3] mb-6" type="submit" name="submit">Submit</button>
+            </form>
+          </div>
           <div class="w-full h-fit flex items-center justify-center">
             <div
               class="w-full max-w-screen h-fit mx-auto rounded-xl bg-[#171717] shadow-lg p-5 text-white"

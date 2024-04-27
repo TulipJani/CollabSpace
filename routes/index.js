@@ -2,6 +2,7 @@ const express = require("express");
 const session = require("express-session");
 const auth = require("../log_auth/auth");
 const fs = require("fs");
+const validator=require("validator");
 const Workspace = require("../models/workspace");
 const nodemailer = require("nodemailer");
 
@@ -48,10 +49,12 @@ app.get("/home", isLoggedIn, async (req, res) => {
   });
 
   try {
+   
     await guser.save();
     sendCongratulatoryEmail(email);
     const projects = await Project.find();
-    res.render("home", { displayName, projects });
+    const userWorkspaces = await Workspace.find({ createdBy: displayName });
+    res.render("home", { displayName, projects,userWorkspaces });
   } catch (error) {
     console.error("Error in /home route:", error);
     res.status(500).send("Internal Server Error");
@@ -67,11 +70,11 @@ app.post("/home", async (req, res) => {
     const newWorkspace = new Workspace({
       workspaceName,
     });
-
-    // Save the new workspace document to the database
     await newWorkspace.save();
 
-    res.send("Workspace created successfully");
+    const username = req.user.displayName; 
+
+    res.redirect(`/workspace/${workspaceName}/${username}`);
   } catch (error) {
     console.error("Error saving workspace:", error);
     res.status(500).send("Internal Server Error");
@@ -96,6 +99,94 @@ function sendCongratulatoryEmail(userEmail) {
     }
   });
 }
+
+app.get('/workspace/:workspaceName/:username', async (req, res) => {
+  const { workspaceName, username } = req.params;
+  try {
+      const user = await Glog.findOne({ displayName: username });
+      if (!user) {
+          return res.status(404).send('User not found');
+      }
+      const workspace = await Workspace.findOne({ workspaceName, user: user._id });
+      req.session.username = username;
+      res.render('workspace', { workspace, workspaceName,username});
+  } catch (err) {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+  }
+});
+
+app.post('/workspace/:workspaceName/:username', async (req, res) => {
+  const { email } = req.body;
+  const { workspaceName } = req.params;
+
+  try {
+    // Validate email format (you can use a library like 'validator' for this)
+    if (!email || !validator.isEmail(email)) {
+      return res.status(400).send("Invalid email format");
+    }
+
+    // Find the workspace by name
+    const workspace = await Workspace.findOne({ workspaceName });
+    if (!workspace) {
+      return res.status(404).send("Workspace not found");
+    }
+
+    // Check if email already exists in inviteMembers array
+    if (workspace.inviteMembers.includes(email)) {
+      return res.status(400).send("Email already invited to this workspace");
+    }
+
+    // Add the invited member's email to inviteMembers array
+    workspace.inviteMembers.push(email);
+    await workspace.save();
+
+    // Send email invitation to the invited member
+    sendEmailInvitation(email, workspaceName);
+
+    res.send("Invitation sent successfully");
+  } catch (error) {
+    console.error("Error inviting member:", error);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+
+function sendEmailInvitation(email, workspaceName) {
+
+  const mailOptions = {
+    from: "hacathon2k23@gmail.com",
+    to: email,
+    subject: "Join the collabspace",
+    html:`
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+    </head>
+    <body>
+        <!-- invitation-form.ejs -->
+   
+        <a href="http://localhost:5000/workspace/Collabspace/AK%20B#">Accept Invitation</button></a>
+
+    </body>
+    </html>`
+    
+  };
+
+  // Send email
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log("Error sending email:", error);
+    } else {
+      console.log("Email sent:", info.response);
+    }
+  })
+
+}
+
+
 
 app.get("/assign", async (req, res) => {
   const projects = await Project.find();
@@ -225,9 +316,7 @@ app.get("/auth/fail", (req, res) => {
   res.send("SOmething went wrong");
 });
 
-app.get("/workspace", (req, res) => {
-  res.render("workspace");
-});
+
 app.get("/logout", (req, res) => {
   req.logOut();
   req.session.destroy();
