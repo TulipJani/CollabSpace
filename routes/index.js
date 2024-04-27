@@ -167,9 +167,7 @@ function sendEmailInvitation(email, workspaceName) {
     </head>
     <body>
         <!-- invitation-form.ejs -->
-   
         <a href="http://localhost:5000/workspace/Collabspace/AK%20B#">Accept Invitation</button></a>
-
     </body>
     </html>`
     
@@ -185,7 +183,6 @@ function sendEmailInvitation(email, workspaceName) {
   })
 
 }
-
 
 
 app.get("/assign", async (req, res) => {
