@@ -59,7 +59,7 @@
           >
             <a
               class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
-              href="#"
+              href="/get-started"
             >
               <span
                 class="w-16 h-16 flex items-center justify-center text-gray-400"
@@ -99,12 +99,6 @@
               </span>
               <span class="ml-4">Workspace</span>
             </a>
-            <ul>
-              <% userWorkspaces.forEach(workspace => { %>
-                <li><%= workspace.workspaceName %></li>
-                <!-- Add more details about the workspace as needed -->
-              <% }); %>
-            </ul>
           </li>
 
           <li
@@ -119,10 +113,138 @@
               >
                 <ion-icon name="settings-outline" class="text-4xl"></ion-icon>
               </span>
-              <span class="ml-4">Logout</span>
+              <span class="ml-4">Settings</span>
             </a>
           </li>
         </ul>
+        <div class="absolute main w-[95vh] flex items-center justify-center">
+      <div
+        class="relative w-96 z-20 h-full bg-[#202020] transition-all duration-200 overflow-hidden p-5 py-10"
+      >
+        <ul class="w-full h-full">
+          <li
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+          >
+            <a
+              class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
+              href="#"
+            >
+              <span
+                class="w-16 h-16 flex items-center justify-center text-gray-400"
+              >
+                <ion-icon name="person-outline" class="text-4xl"></ion-icon>
+              </span>
+              <span class="ml-4"> <%= displayName %></span>
+            </a>
+          </li>
+          <li
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+          >
+            <a
+              class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
+              href="/get-started"
+            >
+              <span
+                class="w-16 h-16 flex items-center justify-center text-gray-400"
+              >
+                <ion-icon name="power" class="text-4xl"></ion-icon>
+              </span>
+              <span class="ml-4">Get Started</span>
+            </a>
+          </li>
+          <li
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+          >
+            <a
+              class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
+              href="#"
+            >
+              <span
+                class="w-16 h-16 flex items-center justify-center text-gray-400"
+              >
+                <ion-icon name="home-outline" class="text-4xl"></ion-icon>
+              </span>
+              <span class="ml-4">Home</span>
+            </a>
+          </li>
+          
+          <li
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+          >
+            <a
+              class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
+              href="#"
+            >
+              <span
+                class="w-16 h-16 flex items-center justify-center text-gray-400"
+              >
+                <ion-icon name="people-outline" class="text-4xl"></ion-icon>
+              </span>
+              <span class="ml-4">Workspace</span>
+            </a>
+          </li>
+
+          <li
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+          >
+            <a
+              class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
+              href="#"
+            >
+              <span
+                class="w-16 h-16 flex items-center justify-center text-gray-400"
+              >
+                <ion-icon name="settings-outline" class="text-4xl"></ion-icon>
+              </span>
+              <span class="ml-4">Settings</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div
+        class="content relative z-10 w-full h-screen bg-[#191919] flex flex-col items-center justify-center"
+      >
+        <div class="p-4 py-20 flex flex-col items-center justify-center w-full">
+          <h1 class="text-4xl md:text-5xl font-bold text-[#d3d3d3] mb-6">
+            Welcome <%= displayName %>
+          </h1>
+          <div class="gap-4">
+            <button
+              id="openDialogBtn"
+              class="relative z-40 bg-[#2a2a2a] hover:bg-[#1c1c1c] text-[#d3d3d3] font-semibold py-3 px-6 rounded-full transition-colors duration-300"
+            >
+              Create Workspace
+            </button>
+            <div id="dialog" class="dialog hidden z-50">
+              <div class="dialog-content rounded-lg p-8 shadow-lg">
+                <h2 class="text-2xl font-bold mb-4 text-[#d3d3d3]">
+                  Workspace Details
+                </h2>
+                <form id="inviteForm" action='/home' method="post">
+                  <input
+                    type="text"
+                    name="workspaceName"
+                    id="workspaceName"
+                    placeholder="Enter Workspace Name"
+                    class="w-full p-2 mb-4 border border-[#141414] rounded bg-[#2c2c2c] text-white"
+                    required
+                  />
+                  <button
+                    type="submit"
+                    class="relative z-40 bg-[#2a2a2a] hover:bg-[#0f0f0f] text-[#d3d3d3] font-semibold py-3 px-6 rounded-full transition-colors duration-300"
+                  >
+                    Create Workspace
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dialog Box -->
+    </div>
       </div>
 
       <div

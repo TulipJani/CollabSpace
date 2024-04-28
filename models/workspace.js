@@ -15,7 +15,11 @@ const workspaceSchema = new mongoose.Schema({
   },user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Glog'
-}, inviteMembers: [{ type: String }] 
+},createdBy: {
+  type: String, 
+  required: true
+},
+inviteMembers: [{ type: String }] 
 });
 
 // Create workspace model

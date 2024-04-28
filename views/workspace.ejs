@@ -105,17 +105,31 @@
       <div
         class="content relative z-10 w-full h-screen bg-[#191919] flex flex-col items-center justify-center"
       >
-        <div class="p-4 py-20 flex flex-col items-center justify-center w-full">
+        <div class="relative p-4 py-20 flex flex-col items-center justify-center w-full">
           <h1 class="mt-20 text-4xl md:text-5xl font-bold text-[#d3d3d3] mb-6">
             <%= workspaceName %>
           </h1>
           <div>
-            <h1 class="mt-20 text-4xl md:text-2xl font-bold text-[#d3d3d3] mb-6">Invite members</h1>
-            <form action="/workspace/<%= workspaceName %>/<%= username %>" method="POST">
-              <label class="mt-20 text-1xl md:text-2xl font-bold text-[#d3d3d3] mb-6" for="invitemem">write email</label>
-              <input class="mt-20 text-1xl md:text-2xl font-bold text-[#d3d3d3] mb-6" type="email" name="email">
-              <button class="mt-20 text-1xl md:text-2xl font-bold text-[#d3d3d3] mb-6" type="submit" name="submit">Submit</button>
+          <button
+              id="openDialogBtn"
+              class="relative z-40 bg-[#2a2a2a] hover:bg-[#1c1c1c] text-[#d3d3d3] font-semibold py-3 px-6 rounded-full transition-colors duration-300"
+            >
+              Invite Users
+            </button>
+            <div id="dialog" class="dialog hidden w-96 h-screen rounded-3xl absolute top-12 -right-[15%] bg-[#2f2f2f] -translate-x-1/2 z-50">
+              <div class="dialog-content p-8 shadow-lg">
+                <h1 class="text-4xl md:text-2xl font-bold text-[#d3d3d3] mb-6">Invite members</h1>
+                    <form id="inviteForm"  action="/workspace/<%= workspaceName %>/<%= username %>" method="POST">
+              <label class="m-5 text-sm md:text-md font-bold text-[#d3d3d3] mb-6" for="invitemem">Enter email of user to invite</label>
+              <input required class="w-full p-2 mb-4 border border-[#141414] rounded bg-[#2c2c2c] text-white" type="email" name="email" placeholder="email@xyz.com">
+              <button   class="relative z-40 bg-[#2a2a2a] hover:bg-[#0f0f0f] text-[#d3d3d3] font-semibold py-3 px-6 rounded-full transition-colors duration-300" type="submit" name="submit">Invite</button>
             </form>
+            
+              </div>
+                <h1 class="text-center m-5 text-4xl md:text-2xl font-bold text-[#d3d3d3] mb-6">Exisiting members</h1>
+              
+            </div>
+            
           </div>
           <div class="w-full h-fit flex items-center justify-center">
             <div
@@ -212,7 +226,39 @@
         </div>
       </div>
     </div>
+<script>
+      // Get references to the button and dialog elements
+      const openDialogBtn = document.getElementById("openDialogBtn");
+      const dialog = document.getElementById("dialog");
 
+      // Function to close the dialog
+      const closeDialog = () => {
+        dialog.classList.add("hidden");
+      };
+
+      // Add click event listener to the button to open the dialog
+      openDialogBtn.addEventListener("click", () => {
+        // Show the dialog
+        dialog.classList.remove("hidden");
+
+        // Add event listener to close the dialog when anywhere else is clicked
+        document.addEventListener("click", (event) => {
+          if (
+            !dialog.contains(event.target) &&
+            event.target !== openDialogBtn
+          ) {
+            closeDialog();
+          }
+        });
+
+        // Add event listener to close the dialog when "Esc" key is pressed
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") {
+            closeDialog();
+          }
+        });
+      });
+    </script>
     <script>
       function app() {
         return {
