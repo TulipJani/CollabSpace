@@ -23,6 +23,7 @@
     "passport": "^0.7.0",
     "passport-google-oauth2": "^0.2.0",
     "path": "^0.12.7",
+    "socket.io": "^4.7.5",
     "transporter": "^0.0.1",
     "validator": "^13.11.0"
   }

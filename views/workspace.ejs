@@ -9,6 +9,8 @@
       src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.js"
       defer
     ></script>
+    <script src="/socket.io/socket.io.js"></script>
+  
     <style>
       @import url(https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/5.3.45/css/materialdesignicons.min.css);
 
@@ -25,7 +27,7 @@
       >
         <ul class="w-full h-full">
           <li
-            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-2 hover:bg-[#1c1c1c]"
           >
             <a
               class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
@@ -34,28 +36,30 @@
               <span
                 class="w-16 h-16 flex items-center justify-center text-gray-400"
               >
-                <ion-icon name="person-outline" class="text-4xl"></ion-icon>
+                <ion-icon name="person-outline" class="text-2xl"></ion-icon>
               </span>
-              <span class="ml-4"><%= username %></span>
+              <span class="ml-4"> <%= username %></span>
             </a>
           </li>
+
           <li
-            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-2 hover:bg-[#1c1c1c]"
           >
             <a
               class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
-              href="#"
+              href="/get-started"
             >
               <span
                 class="w-16 h-16 flex items-center justify-center text-gray-400"
               >
-                <ion-icon name="power" class="text-4xl"></ion-icon>
+                <ion-icon name="power" class="text-2xl"></ion-icon>
               </span>
               <span class="ml-4">Get Started</span>
             </a>
+            
           </li>
           <li
-            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-2 hover:bg-[#1c1c1c]"
           >
             <a
               class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
@@ -64,13 +68,14 @@
               <span
                 class="w-16 h-16 flex items-center justify-center text-gray-400"
               >
-                <ion-icon name="home-outline" class="text-4xl"></ion-icon>
+                <ion-icon name="home-outline" class="text-2xl"></ion-icon>
               </span>
               <span class="ml-4">Home</span>
             </a>
           </li>
+
           <li
-            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-20 hover:bg-[#1c1c1c]"
           >
             <a
               class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
@@ -79,25 +84,51 @@
               <span
                 class="w-16 h-16 flex items-center justify-center text-gray-400"
               >
-                <ion-icon name="people-outline" class="text-4xl"></ion-icon>
+                <ion-icon name="people-outline" class="text-2xl"></ion-icon>
               </span>
-              <span class="ml-4">  <%= workspaceName %></span>
-            </span>
+              <span class="ml-4">Workspace</span>
             </a>
           </li>
+          <span
+            class="ml-4 text-center w-full relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
+            >Your Workspaces.</span
+          >
           <li
-            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-8"
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-2 hover:bg-[#1c1c1c]"
+          ></li>
+          <ul>
+            <% workspace %>
+            <li
+              class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-2 hover:bg-[#1c1c1c]"
+            >
+              <a
+                class="relative block w-full flex items-center text-decoration-none text-gray-400 font-semibold"
+                href="/workspace/<%= workspace.workspaceName %>/<%= username %>"
+              >
+                <span
+                  class="w-16 h-16 flex items-center justify-center text-gray-400"
+                >
+                  <ion-icon name="document-outline" class="text-xl"></ion-icon>
+                </span>
+                <span class="ml-4"><%= workspace.workspaceName %></span>
+              </a>
+            </li>
+            <% %>
+          </ul>
+
+          <li
+            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-2 hover:bg-[#1c1c1c]"
           >
             <a
-              class="relative block w-full flex items-center text-decoration-none text-gray-400 font-bold"
+              class="relative block w-full flex items-center text-decoration-none text-gray-400 font-sembold"
               href="#"
             >
               <span
                 class="w-16 h-16 flex items-center justify-center text-gray-400"
               >
-                <ion-icon name="settings-outline" class="text-4xl"></ion-icon>
+                <ion-icon name="settings-outline" class="text-xl"></ion-icon>
               </span>
-              <span class="ml-4">Logout</span>
+              <span class="ml-4">Settings</span>
             </a>
           </li>
         </ul>
@@ -105,31 +136,71 @@
       <div
         class="content relative z-10 w-full h-screen bg-[#191919] flex flex-col items-center justify-center"
       >
-        <div class="relative p-4 py-20 flex flex-col items-center justify-center w-full">
+        <div
+          class="relative p-4 py-20 flex flex-col items-center justify-center w-full"
+        >
           <h1 class="mt-20 text-4xl md:text-5xl font-bold text-[#d3d3d3] mb-6">
             <%= workspaceName %>
           </h1>
           <div>
-          <button
+            <button
               id="openDialogBtn"
               class="relative z-40 bg-[#2a2a2a] hover:bg-[#1c1c1c] text-[#d3d3d3] font-semibold py-3 px-6 rounded-full transition-colors duration-300"
             >
               Invite Users
             </button>
-            <div id="dialog" class="dialog hidden w-96 h-screen rounded-3xl absolute top-12 -right-[15%] bg-[#2f2f2f] -translate-x-1/2 z-50">
+            <div
+              id="dialog"
+              class="dialog hidden w-96 h-screen rounded-3xl absolute top-12 -right-[15%] bg-[#2f2f2f] -translate-x-1/2 z-50"
+            >
               <div class="dialog-content p-8 shadow-lg">
-                <h1 class="text-4xl md:text-2xl font-bold text-[#d3d3d3] mb-6">Invite members</h1>
-                    <form id="inviteForm"  action="/workspace/<%= workspaceName %>/<%= username %>" method="POST">
-              <label class="m-5 text-sm md:text-md font-bold text-[#d3d3d3] mb-6" for="invitemem">Enter email of user to invite</label>
-              <input required class="w-full p-2 mb-4 border border-[#141414] rounded bg-[#2c2c2c] text-white" type="email" name="email" placeholder="email@xyz.com">
-              <button   class="relative z-40 bg-[#2a2a2a] hover:bg-[#0f0f0f] text-[#d3d3d3] font-semibold py-3 px-6 rounded-full transition-colors duration-300" type="submit" name="submit">Invite</button>
-            </form>
-            
+                <h1 class="text-4xl md:text-2xl font-bold text-[#d3d3d3] mb-6">
+                  Invite members
+                </h1>
+                <form
+                  id="inviteForm"
+                  action="/workspace/<%= workspaceName %>/<%= username %>"
+                  method="POST"
+                >
+                  <label
+                    class="m-5 text-sm md:text-md font-bold text-[#d3d3d3] mb-6"
+                    for="invitemem"
+                    >Enter email of user to invite</label
+                  >
+                  <input
+                    required
+                    class="w-full p-2 mb-4 border border-[#141414] rounded bg-[#2c2c2c] text-white"
+                    type="email"
+                    name="email"
+                    placeholder="email@xyz.com"
+                  />
+                  <button
+                    class="relative z-40 bg-[#2a2a2a] hover:bg-[#0f0f0f] text-[#d3d3d3] font-semibold py-3 px-6 rounded-full transition-colors duration-300"
+                    type="submit"
+                    name="submit"
+                  >
+                    Invite
+                  </button>
+                </form>
               </div>
-                <h1 class="text-center m-5 text-4xl md:text-2xl font-bold text-[#d3d3d3] mb-6">Exisiting members</h1>
-              
+              <h1
+                class="text-center m-5 text-4xl md:text-2xl font-bold text-[#d3d3d3] mb-6"
+              >
+                Exisiting members
+              </h1>
+
+              <% if (workspace.inviteMembers && workspace.inviteMembers.length >
+              0) { %>
+              <h2>Invited Members:</h2>
+              <ul>
+                <% workspace.inviteMembers.forEach(function(member) { %>
+                <li><%= member %></li>
+                <% }); %>
+              </ul>
+              <% } else { %>
+              <p>No members have been invited yet.</p>
+              <% } %>
             </div>
-            
           </div>
           <div class="w-full h-fit flex items-center justify-center">
             <div
@@ -226,7 +297,7 @@
         </div>
       </div>
     </div>
-<script>
+    <script>
       // Get references to the button and dialog elements
       const openDialogBtn = document.getElementById("openDialogBtn");
       const dialog = document.getElementById("dialog");
@@ -259,35 +330,67 @@
         });
       });
     </script>
-    <script>
-      function app() {
-        return {
-          wysiwyg: null,
-          init: function (el) {
-            // Get el
-            this.wysiwyg = el;
-            // Add CSS
-            this.wysiwyg.contentDocument.querySelector(
-              "head"
-            ).innerHTML += `<style>
-            *, ::after, ::before {box-sizing: border-box;}
-            :root {tab-size: 4;}
-            html {line-height: 1.15;text-size-adjust: 100%;}
-            body {margin: 0px; padding: 1rem 0.5rem;}
-            body {font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";color:#fff;}
-            </style> `;
-            this.wysiwyg.contentDocument.body.innerHTML += `
-            <h1>It was easy :)</h1>
-            <p>Explore your collaborative workspace.</p>
-            `;
-            this.wysiwyg.contentDocument.designMode = "on";
-          },
-          format: function (cmd, param) {
-            this.wysiwyg.contentDocument.execCommand(cmd, !1, param || null);
-          },
-        };
-      }
-    </script>
+<script>
+  const socket = io();
+
+  // Join the workspace room
+  socket.emit('join', '<%= workspaceName %>');
+
+  // Function to update the collaborative space content
+  function updateContent(content) {
+      const wysiwyg = document.querySelector('iframe').contentWindow;
+      wysiwyg.document.body.innerHTML = content;
+  }
+
+  // Listen for changes from other users
+  socket.on('contentChange', (newContent) => {
+      // Update the content of the collaborative space with the new content
+      updateContent(newContent);
+  });
+
+  // Function to send content changes to the server
+  function sendContentChanges() {
+      const wysiwyg = document.querySelector('iframe').contentWindow;
+      const content = wysiwyg.document.body.innerHTML;
+
+      // Emit the content changes to the server
+      socket.emit('contentChange', content);
+  }
+
+  // Function to initialize the collaborative space
+  function init(el) {
+      const wysiwyg = el;
+
+      // Add CSS
+      wysiwyg.contentDocument.querySelector("head").innerHTML += `
+          <style>
+              *, ::after, ::before { box-sizing: border-box; }
+              :root { tab-size: 4; }
+              html { line-height: 1.15; text-size-adjust: 100%; }
+              body { margin: 0px; padding: 1rem 0.5rem; }
+              body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; color: #fff; }
+          </style>`;
+
+      // Enable design mode after iframe is fully loaded
+      wysiwyg.onload = function() {
+          // Set initial content
+          wysiwyg.document.body.innerHTML = `
+              <h1>It was easy :)</h1>
+              <p>Explore your collaborative workspace.</p>`;
+
+          // Enable design mode
+          wysiwyg.document.designMode = "on";
+
+          // Listen for input events to detect content changes
+          wysiwyg.document.addEventListener('input', sendContentChanges);
+      };
+  }
+
+  // Initialize the collaborative space
+  init(document.querySelector('iframe'));
+
+</script>
+
     <script
       type="module"
       src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"

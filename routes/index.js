@@ -5,6 +5,8 @@ const fs = require("fs");
 const validator=require("validator");
 const Workspace = require("../models/workspace");
 const nodemailer = require("nodemailer");
+const http = require('http');
+const socketIO = require('socket.io');
 
 const passport = require("passport");
 function isLoggedIn(req, res, next) {
@@ -17,6 +19,8 @@ const multer = require("multer");
 
 const Glog = require("../models/log_auth");
 const app = express();
+const server = http.createServer(app);
+const io = socketIO(server);
 
 app.use(express.static("public"));
 
@@ -47,8 +51,9 @@ app.get("/home", isLoggedIn, async (req, res) => {
     await guser.save();
     sendCongratulatoryEmail(email);
     
-    const userWorkspaces = await Workspace.find({ createdBy: displayName });
-    res.render("home", { displayName,userWorkspaces });
+   const workspaces = await Workspace.find({ createdBy: displayName });
+
+    res.render("home", { displayName,workspaces });
   } catch (error) {
     console.error("Error in /home route:", error);
     res.status(500).send("Internal Server Error");
@@ -93,52 +98,63 @@ function sendCongratulatoryEmail(userEmail) {
   });
 }
 
-app.get('/workspace/:workspaceName/:username', async (req, res) => {
- const { workspaceName, username } = req.params;
- try {
-    const user = await Glog.findOne({ displayName: username });
-    if (!user) {
-      return res.status(404).send('User not found');
-    }
+app.all('/workspace/:workspaceName/:username', async (req, res) => {
+  const { workspaceName, username } = req.params;
 
-    const woe = await Workspace.findOne({ workspaceName, user: user._id });
+  try {
+      const user = await Glog.findOne({ displayName: username });
+      if (!user) {
+          return res.status(404).send('User not found');
+      }
 
-    res.render('workspace', { woe, workspaceName, username });
- } catch (err) {
-    console.error(err);
-    res.status(500).send('Internal Server Error');
- }
+      let workspace = await Workspace.findOne({ workspaceName, createdBy: user._id });
+      if (!workspace) {
+        
+          workspace = await Workspace.create({ workspaceName, createdBy: user._id, inviteMembers: [] });
+      }
+
+      // If inviteMembers is null or undefined, initialize it as an empty array
+      if (!workspace.inviteMembers) {
+          workspace.inviteMembers = [];
+      }
+
+      if (req.method === 'POST') {
+          const { email } = req.body;
+
+          if (workspace.inviteMembers.includes(email)) {
+              return res.status(400).send("Email already invited to this workspace");
+          }
+
+          workspace.inviteMembers.push(email);
+          await workspace.save();
+          sendEmailInvitation(email, workspaceName, username);
+          io.to(workspaceName).emit('invite', { workspaceName, email });
+
+
+          return res.redirect(`/workspace/${workspaceName}/${username}`);
+      }
+
+      res.render('workspace', { workspace, workspaceName, username });
+  } catch (error) {
+      console.error("Error handling workspace request:", error);
+      res.status(500).send("Internal Server Error");
+  }
 });
 
+app.delete('/workspace/:workspaceName/:username', async (req, res) => {
+  const { workspaceName, username } = req.params;
 
-
-app.post('/workspace/:workspaceName/:username', async (req, res) => {
-  const { email } = req.body;
-  const { workspaceName,username } = req.params;
-  
   try {
-    const workspace = await Workspace.findOne({ workspaceName });
-    if (!workspace) {
-      return res.status(404).send("Workspace not found");
-    }
+      const user = await Glog.findOne({ displayName: username });
+      if (!user) {
+          return res.status(404).send('User not found');
+      }
 
-    if (workspace.inviteMembers.includes(email)) {
-      return res.status(400).send("Email already invited to this workspace");
-    }
-
-    // Add the invited member's email to inviteMembers array
-    workspace.inviteMembers.push(email);
-    await workspace.save();
-
-    
-
-    // Send email invitation to the invited member
-    sendEmailInvitation(email, workspaceName,username);
-
-    res.send("Invitation sent successfully");
+      await Workspace.findOneAndDelete({ workspaceName, createdBy: user._id });
+      return res.redirect('/home');
   } catch (error) {
-    console.error("Error inviting member:", error);
-    res.status(500).send("Internal Server Error");
+      console.error("Error deleting workspace:", error);
+      res.status(500).send("Internal Server Error");
   }
 });
 
