@@ -9,8 +9,8 @@
       src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.js"
       defer
     ></script>
-    <script src="/socket.io/socket.io.js"></script>
-  
+   
+
     <style>
       @import url(https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/5.3.45/css/materialdesignicons.min.css);
 
@@ -56,7 +56,6 @@
               </span>
               <span class="ml-4">Get Started</span>
             </a>
-            
           </li>
           <li
             class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-2 hover:bg-[#1c1c1c]"
@@ -330,67 +329,49 @@
         });
       });
     </script>
-<script>
-  const socket = io();
+    <script>
+      function app() {
+        return {
+          wysiwyg: null,
+          init: function (el) {
+            // Get el
+            this.wysiwyg = el;
+            // Add CSS
+            this.wysiwyg.contentDocument.querySelector(
+              "head"
+            ).innerHTML += `<style>
+            *, ::after, ::before {box-sizing: border-box;}
+            :root {tab-size: 4;}
+            html {line-height: 1.15;text-size-adjust: 100%;}
+            body {margin: 0px; padding: 1rem 0.5rem;}
+            body {font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";color:#fff;}
+            </style> `;
+            this.wysiwyg.contentDocument.body.innerHTML += `
+            <h1>It was easy :)</h1>
+            <p>Explore your collaborative workspace.</p>
+            `;
+            this.wysiwyg.contentDocument.designMode = "on";
+          },
+          format: function (cmd, param) {
+            this.wysiwyg.contentDocument.execCommand(cmd, !1, param || null);
+          },
+        };
+      }
+    </script>
+    <script
+      src="https://cdn.socket.io/4.7.5/socket.io.min.js"
+      integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      const socket=io();
+      socket.on('eventFromServer',(data)=>{
+        console.log(data);
+      });
+      socket.emit('eventToServer',{messsage:'Hello,server!'});
 
-  // Join the workspace room
-  socket.emit('join', '<%= workspaceName %>');
 
-  // Function to update the collaborative space content
-  function updateContent(content) {
-      const wysiwyg = document.querySelector('iframe').contentWindow;
-      wysiwyg.document.body.innerHTML = content;
-  }
-
-  // Listen for changes from other users
-  socket.on('contentChange', (newContent) => {
-      // Update the content of the collaborative space with the new content
-      updateContent(newContent);
-  });
-
-  // Function to send content changes to the server
-  function sendContentChanges() {
-      const wysiwyg = document.querySelector('iframe').contentWindow;
-      const content = wysiwyg.document.body.innerHTML;
-
-      // Emit the content changes to the server
-      socket.emit('contentChange', content);
-  }
-
-  // Function to initialize the collaborative space
-  function init(el) {
-      const wysiwyg = el;
-
-      // Add CSS
-      wysiwyg.contentDocument.querySelector("head").innerHTML += `
-          <style>
-              *, ::after, ::before { box-sizing: border-box; }
-              :root { tab-size: 4; }
-              html { line-height: 1.15; text-size-adjust: 100%; }
-              body { margin: 0px; padding: 1rem 0.5rem; }
-              body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; color: #fff; }
-          </style>`;
-
-      // Enable design mode after iframe is fully loaded
-      wysiwyg.onload = function() {
-          // Set initial content
-          wysiwyg.document.body.innerHTML = `
-              <h1>It was easy :)</h1>
-              <p>Explore your collaborative workspace.</p>`;
-
-          // Enable design mode
-          wysiwyg.document.designMode = "on";
-
-          // Listen for input events to detect content changes
-          wysiwyg.document.addEventListener('input', sendContentChanges);
-      };
-  }
-
-  // Initialize the collaborative space
-  init(document.querySelector('iframe'));
-
-</script>
-
+    </script>
     <script
       type="module"
       src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"

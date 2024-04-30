@@ -110,7 +110,7 @@
           ></li>
 
           <li
-            class="relative w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-2 hover:bg-[#1c1c1c]"
+            class="relative justify-between w-4/5 list-none rounded-r-3xl rounded-l-3xl transition-all duration-200 pl-2 mb-2 hover:bg-[#1c1c1c]"
           >
             <% workspaces.forEach(function(workspace) { %>
             <a
@@ -123,10 +123,6 @@
                 <ion-icon name="document-outline" class="text-xl"></ion-icon>
               </span>
               <span class="ml-4 text-sm"><%= workspace.workspaceName %></span>
-              <form class="delete-form" action="/workspace/<%= workspace.workspaceName %>/<%= displayName %>?_method=DELETE" method="delete">
-                <input type="hidden" name="_method" value="DELETE">
-                <button type="submit">Delete Workspace</button>
-            </form>
             </a>
             <% }); %>
           </li>
@@ -223,19 +219,7 @@
         });
       });
     </script>
-     <script>
-      // JavaScript event handling for form submission
-      document.querySelectorAll('.delete-form').forEach(function(form) {
-          form.addEventListener('submit', function(event) {
-              event.preventDefault(); // Prevent default form submission
-              if (confirm("Are you sure you want to delete this workspace?")) {
-                  this.submit(); // Submit the form if user confirms
-              }
-          });
-      });
-  </script>
 
-    <!-- ====== ionicons ======= -->
     <script
       type="module"
       src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"

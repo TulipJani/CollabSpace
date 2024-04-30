@@ -2,11 +2,10 @@ const express = require("express");
 const session = require("express-session");
 const auth = require("../log_auth/auth");
 const fs = require("fs");
+const cors=require('cors');
 const validator=require("validator");
 const Workspace = require("../models/workspace");
 const nodemailer = require("nodemailer");
-const http = require('http');
-const socketIO = require('socket.io');
 
 const passport = require("passport");
 function isLoggedIn(req, res, next) {
@@ -19,11 +18,16 @@ const multer = require("multer");
 
 const Glog = require("../models/log_auth");
 const app = express();
-const server = http.createServer(app);
-const io = socketIO(server);
+
+const server=require('http').createServer(app);
+const {Server}=require("socket.io");
+const io=new Server(server);
+io.on('connection',socket=>{
+  console.log(socket,"connected")
+})
 
 app.use(express.static("public"));
-
+app.use(cors());
 app.use(session({ secret: "cats" }));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -60,6 +64,7 @@ app.get("/home", isLoggedIn, async (req, res) => {
   }
 });
 
+
 app.post("/home", async (req, res) => {
   const { displayName } = req.user;
 
@@ -76,6 +81,24 @@ app.post("/home", async (req, res) => {
   } catch (error) {
     console.error("Error saving workspace:", error);
     res.status(500).send("Internal Server Error");
+  }
+});
+
+app.delete('/home', async (req, res) => {
+  try {
+    const { workspaceName } = req.body;
+    if (!workspaceName) {
+      return res.status(400).json({ error: 'Workspace name is required.' });
+    }
+    // Find the workspace by name and delete it
+    const deletedWorkspace = await Workspace.deleteOne({ name: workspaceName }); 
+    if (deletedWorkspace.deletedCount === 0) {
+      return res.status(404).json({ error: 'Workspace not found.' });
+    }
+    res.sendStatus(200); // Send success status
+  } catch (err) {
+    console.error("Error deleting workspace:", err);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
@@ -141,23 +164,6 @@ app.all('/workspace/:workspaceName/:username', async (req, res) => {
   }
 });
 
-app.delete('/workspace/:workspaceName/:username', async (req, res) => {
-  const { workspaceName, username } = req.params;
-
-  try {
-      const user = await Glog.findOne({ displayName: username });
-      if (!user) {
-          return res.status(404).send('User not found');
-      }
-
-      await Workspace.findOneAndDelete({ workspaceName, createdBy: user._id });
-      return res.redirect('/home');
-  } catch (error) {
-      console.error("Error deleting workspace:", error);
-      res.status(500).send("Internal Server Error");
-  }
-});
-
 function sendEmailInvitation(email, workspaceName,username) {
   
 
@@ -192,6 +198,10 @@ function sendEmailInvitation(email, workspaceName,username) {
 
 }
 
+io.on("connection",(socket)=>{
+  console.log("user connected");
+});
+
 app.get("/auth", (req, res) => {
   res.render("googleAuth");
 });
@@ -217,6 +227,6 @@ app.get("/logout", (req, res) => {
   res.send("Goodbye");
 });
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 module.export = app;
