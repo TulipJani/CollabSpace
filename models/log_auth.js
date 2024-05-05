@@ -18,7 +18,6 @@ const glogSchema = new mongoose.Schema({
     }
 });
 
-// Specify the collection name explicitly
 const Glog = mongoose.model('Glog', glogSchema, 'glogs');
 
 module.exports = Glog;

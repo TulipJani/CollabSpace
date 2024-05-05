@@ -3,6 +3,7 @@ const session = require("express-session");
 const auth = require("../log_auth/auth");
 const fs = require("fs");
 const cors=require('cors');
+const Content=require("../models/content");
 const validator=require("validator");
 const Workspace = require("../models/workspace");
 const nodemailer = require("nodemailer");
@@ -21,6 +22,7 @@ const app = express();
 
 const server=require('http').createServer(app);
 const {Server}=require("socket.io");
+const { log } = require("console");
 const io=new Server(server);
 io.on('connection',socket=>{
   console.log(socket,"connected")
@@ -32,6 +34,7 @@ app.use(session({ secret: "cats" }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.set("view engine", "ejs");
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 
@@ -84,21 +87,21 @@ app.post("/home", async (req, res) => {
   }
 });
 
-app.delete('/home', async (req, res) => {
+app.post('/deleteWorkspace/:workspaceId', async (req, res) => {
+  
+  const workspaceId = req.params.workspaceId;
+
   try {
-    const { workspaceName } = req.body;
-    if (!workspaceName) {
-      return res.status(400).json({ error: 'Workspace name is required.' });
+   
+    const deletedWorkspace = await Workspace.findByIdAndDelete(workspaceId);
+    
+    if (!deletedWorkspace) {
+      return res.status(404).json({ error: 'Workspace not found' });
     }
-    // Find the workspace by name and delete it
-    const deletedWorkspace = await Workspace.deleteOne({ name: workspaceName }); 
-    if (deletedWorkspace.deletedCount === 0) {
-      return res.status(404).json({ error: 'Workspace not found.' });
-    }
-    res.sendStatus(200); // Send success status
-  } catch (err) {
-    console.error("Error deleting workspace:", err);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.redirect("/home");
+  } catch (error) {
+    console.error('Error deleting workspace:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -125,44 +128,60 @@ app.all('/workspace/:workspaceName/:username', async (req, res) => {
   const { workspaceName, username } = req.params;
 
   try {
-      const user = await Glog.findOne({ displayName: username });
-      if (!user) {
-          return res.status(404).send('User not found');
+    const user = await Glog.findOne({ displayName: username });
+    if (!user) {
+      return res.status(404).send('User not found');
+    }
+
+    let workspace = await Workspace.findOne({ workspaceName, createdBy: user._id });
+    if (!workspace) {
+     
+      workspace = await Workspace.create({ workspaceName, createdBy: user._id, inviteMembers: [] });
+    }
+    if (req.method === 'POST') {
+      const { email,content } = req.body;
+
+      if (workspace.inviteMembers.includes(email)) {
+        return res.status(400).send("Email already invited to this workspace");
       }
 
-      let workspace = await Workspace.findOne({ workspaceName, createdBy: user._id });
-      if (!workspace) {
-        
-          workspace = await Workspace.create({ workspaceName, createdBy: user._id, inviteMembers: [] });
-      }
-
-      // If inviteMembers is null or undefined, initialize it as an empty array
-      if (!workspace.inviteMembers) {
-          workspace.inviteMembers = [];
-      }
-
-      if (req.method === 'POST') {
-          const { email } = req.body;
-
-          if (workspace.inviteMembers.includes(email)) {
-              return res.status(400).send("Email already invited to this workspace");
-          }
-
-          workspace.inviteMembers.push(email);
-          await workspace.save();
-          sendEmailInvitation(email, workspaceName, username);
-          io.to(workspaceName).emit('invite', { workspaceName, email });
-
-
-          return res.redirect(`/workspace/${workspaceName}/${username}`);
-      }
-
-      res.render('workspace', { workspace, workspaceName, username });
+      workspace.inviteMembers.push(email);
+      await workspace.save();
+      sendEmailInvitation(email, workspaceName, username);
+      
+      io.to(workspaceName).emit('invite', { workspaceName, email });
+    }
+    const content = await Content.findOne({ workspaceName });
+   
+    res.render('workspace', { workspace, workspaceName, username,content });
+   
   } catch (error) {
-      console.error("Error handling workspace request:", error);
-      res.status(500).send("Internal Server Error");
+    console.error("Error handling workspace request:", error);
+    res.status(500).send("Internal Server Error");
   }
 });
+
+app.post('/save', async (req, res) => {
+  try {
+    const { workspaceName, content } = req.body;
+    const newContent = new Content({ workspaceName, content });
+    await newContent.save();
+  res.send({ message: 'Content saved successfully in th db' });
+  } catch (error) {
+  res.status(500).send({ message: 'Error saving content' });
+  }
+  });
+
+app.get('/load', async (req, res) => {
+    try {
+    const { workspaceName } = req.body;
+    const content = await Content.findOne({workspaceName});
+    res.json(content);
+    //res.send({ content: content ? content.content : '' });
+    } catch (error) {
+    res.status(500).send({ message: 'Error loading content' });
+    }
+  });
 
 function sendEmailInvitation(email, workspaceName,username) {
   
@@ -197,11 +216,18 @@ function sendEmailInvitation(email, workspaceName,username) {
   })
 
 }
+  
+io.on('connection', socket => {
+  console.log('A user connected');
+  socket.on('textUpdate', text => {
+    socket.broadcast.emit('textUpdate', text);
+  });
 
-io.on("connection",(socket)=>{
-  console.log("user connected");
+  socket.on('disconnect', () => {
+    console.log('A user disconnected');
+  });
+  socket.emit('message', 'Welcome to the collaborative workspace!');
 });
-
 app.get("/auth", (req, res) => {
   res.render("googleAuth");
 });

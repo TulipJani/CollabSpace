@@ -10,6 +10,7 @@
       defer
     ></script>
    
+   
 
     <style>
       @import url(https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/5.3.45/css/materialdesignicons.min.css);
@@ -141,6 +142,8 @@
           <h1 class="mt-20 text-4xl md:text-5xl font-bold text-[#d3d3d3] mb-6">
             <%= workspaceName %>
           </h1>
+           <div id="messages"></div>
+
           <div>
             <button
               id="openDialogBtn"
@@ -202,6 +205,7 @@
             </div>
           </div>
           <div class="w-full h-fit flex items-center justify-center">
+            <div id="messages"></div>
             <div
               class="w-full max-w-screen h-fit mx-auto rounded-xl bg-[#171717] shadow-lg p-5 text-white"
               x-data="app()"
@@ -295,6 +299,7 @@
           </div>
         </div>
       </div>
+
     </div>
     <script>
       // Get references to the button and dialog elements
@@ -329,49 +334,109 @@
         });
       });
     </script>
-    <script>
-      function app() {
-        return {
-          wysiwyg: null,
-          init: function (el) {
-            // Get el
-            this.wysiwyg = el;
-            // Add CSS
-            this.wysiwyg.contentDocument.querySelector(
-              "head"
-            ).innerHTML += `<style>
-            *, ::after, ::before {box-sizing: border-box;}
-            :root {tab-size: 4;}
-            html {line-height: 1.15;text-size-adjust: 100%;}
-            body {margin: 0px; padding: 1rem 0.5rem;}
-            body {font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";color:#fff;}
-            </style> `;
-            this.wysiwyg.contentDocument.body.innerHTML += `
-            <h1>It was easy :)</h1>
-            <p>Explore your collaborative workspace.</p>
-            `;
-            this.wysiwyg.contentDocument.designMode = "on";
-          },
-          format: function (cmd, param) {
-            this.wysiwyg.contentDocument.execCommand(cmd, !1, param || null);
-          },
-        };
-      }
-    </script>
-    <script
-      src="https://cdn.socket.io/4.7.5/socket.io.min.js"
-      integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO"
-      crossorigin="anonymous"
-    ></script>
-    <script>
-      const socket=io();
-      socket.on('eventFromServer',(data)=>{
-        console.log(data);
-      });
-      socket.emit('eventToServer',{messsage:'Hello,server!'});
 
+<script src="https://cdn.socket.io/4.1.2/socket.io.min.js"></script>
 
-    </script>
+<script>
+  const socket = io();
+
+  function app(workspaceName, username) {
+    return {
+      wysiwyg: null,
+      init:async function (el) {
+        // Get el
+        this.wysiwyg = el;
+        // Add CSS
+        this.wysiwyg.contentDocument.querySelector("head").innerHTML += `<style>
+          *, ::after, ::before {box-sizing: border-box;}
+          :root {tab-size: 4;}
+          html {line-height: 1.15;text-size-adjust: 100%;}
+          body {margin: 0px; padding: 1rem 0.5rem;}
+          body {font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";color:#fff;}
+        </style> `;
+      
+      
+        try {
+          const workspaceName = "<%= workspaceName %>";
+          const username = "<%= username %>"; 
+          const response = await fetch(`/workspace/${workspaceName}/${username}`);
+          if (!response.ok) {
+            throw new Error('Failed to fetch content from database');
+          }
+          const { content } = await response.text();
+          
+          this.wysiwyg.contentDocument.body.innerHTML = content;
+        } catch (error) {
+          console.error('Error fetching content:', error);
+        }
+        
+        this.wysiwyg.contentDocument.designMode = "on";
+
+       
+        const observer = new MutationObserver((mutationsList, observer) => {
+          for (let mutation of mutationsList) {
+            if (mutation.type === 'childList') {
+              const content = this.wysiwyg.contentDocument.body.innerHTML;
+              socket.emit('textUpdate', content);
+              const workspaceName = "<%= workspaceName %>";
+              this.saveContentToDatabase(workspaceName,content);
+            }
+          }
+        });
+
+        observer.observe(this.wysiwyg.contentDocument.body, { childList: true, subtree: true });
+
+        socket.on('textUpdate', text => {
+          this.wysiwyg.contentDocument.body.innerHTML = text;
+        });
+        socket.on('message', message => {
+          const messageElement = document.createElement('div');
+          messageElement.textContent = message;
+          document.getElementById('messages').appendChild(messageElement);
+        });
+      },
+
+      format: function (cmd, param) {
+        this.wysiwyg.contentDocument.execCommand(cmd, false, param || null);
+      },
+
+      saveContentToDatabase: async function (workspaceName,content) {
+        console.log('workspaceName:', workspaceName);
+        console.log('Content:', content);
+        fetch(`/save`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({workspaceName, content }),
+        })
+          .then(response => {
+            if (!response.ok) {
+              return Promise.reject('Failed to save content to database');
+            }
+            alert('Content saved successfully');
+          })
+          .catch(error => {
+            console.error('Error saving content to database:', error);
+          });
+      },
+    };
+  }
+</script>
+
+<script>
+  const workspaceName = "<%= workspaceName %>";
+  const username = "<%= username %>"; 
+  const socketApp = app(workspaceName, username);
+
+  // Initialize the editor
+  socketApp.init(document.getElementById('editor'));
+  socket.on('contentUpdate', ({ content }) => {
+   
+    socketApp.wysiwyg.contentDocument.body.innerHTML = content;
+  });
+</script> 
+
     <script
       type="module"
       src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"

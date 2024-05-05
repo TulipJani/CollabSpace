@@ -123,8 +123,13 @@
                 <ion-icon name="document-outline" class="text-xl"></ion-icon>
               </span>
               <span class="ml-4 text-sm"><%= workspace.workspaceName %></span>
+              <form action="/deleteWorkspace/<%= workspace._id %>" method="POST">
+                <button type="submit" class="delete-workspace-btn text-red-500">Delete</button>
+              </form>
             </a>
             <% }); %>
+
+
           </li>
 
           <li
@@ -144,6 +149,12 @@
           </li>
         </ul>
       </div>
+<!-- Popup container -->
+<div id="popupContainer" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; display: none;">
+  <div id="popup" style="background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+    <span id="popupMessage" style="font-size: 16px;"></span>
+  </div>
+</div>
 
       <div
         class="content relative z-10 w-full h-screen bg-[#191919] flex flex-col items-center justify-center"
@@ -219,6 +230,54 @@
         });
       });
     </script>
+
+
+<script>
+  function showPopup(message) {
+    const popupContainer = document.getElementById('popupContainer');
+    const popupMessage = document.getElementById('popupMessage');
+    
+    popupMessage.textContent = message;
+    popupContainer.style.display = 'block';
+    setTimeout(() => {
+      popupContainer.style.display = 'none';
+    }, 5000); // Popup will disappear after 5 seconds
+  }
+
+  // Assuming you're using fetch to send the POST request
+  document.addEventListener('DOMContentLoaded', function() {
+    const deleteForm = document.querySelector('.delete-workspace-form');
+
+    deleteForm.addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const formData = new FormData(this);
+      const workspaceId = formData.get('workspaceId');
+
+      fetch(`/deleteWorkspace/${workspaceId}`, {
+        method: 'POST',
+      })
+      .then(response => {
+        if (response.ok) {
+          // Display popup message if deletion is successful
+          showPopup('Workspace deleted successfully');
+          // Optionally, redirect the user to a different page after deletion
+          window.location.href = '/home';
+        } else {
+          // Handle error response from the server
+          console.error('Failed to delete workspace');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    });
+  });
+</script>
+
+
+</script>
+
 
     <script
       type="module"
