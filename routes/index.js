@@ -1,6 +1,7 @@
 const express = require("express");
 const session = require("express-session");
 const auth = require("../log_auth/auth");
+const git_auth=require("../log_auth/git_auth");
 const fs = require("fs");
 const cors=require('cors');
 const Content=require("../models/content");
@@ -46,6 +47,10 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+
+app.get('/gittry',(req,res)=>{
+  res.render('githome');
+})
 app.get("/home", isLoggedIn, async (req, res) => {
   const { displayName, email } = req.user;
   const guser = new Glog({
@@ -246,6 +251,15 @@ app.get("/auth/fail", (req, res) => {
   res.send("SOmething went wrong");
 });
 
+app.get('/auth/github',
+  passport.authenticate('github', { scope: [ 'user:email' ] }));
+
+app.get('/github/callback', 
+  passport.authenticate('github', { failureRedirect: '/auth' }),
+  function(req, res) {
+   
+    res.redirect('/gittry');
+  });
 
 app.get("/logout", (req, res) => {
   req.logOut();
