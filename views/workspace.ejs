@@ -9,8 +9,6 @@
       src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.js"
       defer
     ></script>
-   
-   
 
     <style>
       @import url(https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/5.3.45/css/materialdesignicons.min.css);
@@ -142,7 +140,7 @@
           <h1 class="mt-20 text-4xl md:text-5xl font-bold text-[#d3d3d3] mb-6">
             <%= workspaceName %>
           </h1>
-           <div id="messages"></div>
+          <div id="messages"></div>
 
           <div>
             <button
@@ -211,7 +209,9 @@
               x-data="app()"
               x-init="init($refs.wysiwyg)"
             >
+            
               <div class="border border-[#3c3c3c] overflow-hidden rounded-md">
+                
                 <div
                   class="w-full flex border-b border-[#202020] text-xl text-gray-600"
                 >
@@ -289,6 +289,7 @@
                   </button>
                 </div>
                 <div class="w-full">
+                  <section> <p><%= content ? content.content : "No content available" %></p></section>
                   <iframe
                     x-ref="wysiwyg"
                     class="w-full h-96 overflow-y-auto text-white"
@@ -299,21 +300,19 @@
           </div>
         </div>
       </div>
-
     </div>
     <script>
-      // Get references to the button and dialog elements
+    
       const openDialogBtn = document.getElementById("openDialogBtn");
       const dialog = document.getElementById("dialog");
 
-      // Function to close the dialog
       const closeDialog = () => {
         dialog.classList.add("hidden");
       };
 
-      // Add click event listener to the button to open the dialog
+    
       openDialogBtn.addEventListener("click", () => {
-        // Show the dialog
+        
         dialog.classList.remove("hidden");
 
         // Add event listener to close the dialog when anywhere else is clicked
@@ -335,120 +334,156 @@
       });
     </script>
 
-<script src="https://cdn.socket.io/4.1.2/socket.io.min.js"></script>
-
-<script>
-  const socket = io();
-
-  function app(workspaceName, username) {
-    let saving = false;
-    let timeoutId = 500;
-    return {
-      wysiwyg: null,
-      init:async function (el) {
-        // Get el
-        this.wysiwyg = el;
-        // Add CSS
-        this.wysiwyg.contentDocument.querySelector("head").innerHTML += `<style>
-          *, ::after, ::before {box-sizing: border-box;}
-          :root {tab-size: 4;}
-          html {line-height: 1.15;text-size-adjust: 100%;}
-          body {margin: 0px; padding: 1rem 0.5rem;}
-          body {font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";color:#fff;}
-        </style> `;
-      
-      
-        try {
-          const workspaceName = "<%= workspaceName %>";
-          const username = "<%= username %>"; 
-          const response = await fetch(`/workspace/${workspaceName}/${username}`);
-          if (!response.ok) {
-            throw new Error('Failed to fetch content from database');
-          }
-          const { content } = await response.text();
-          
-          this.wysiwyg.contentDocument.body.innerHTML = content;
-        } catch (error) {
-          console.error('Error fetching content:', error);
-        }
-        
-        this.wysiwyg.contentDocument.designMode = "on";
-
-       
-        const observer = new MutationObserver((mutationsList, observer) => {
-          clearTimeout(timeoutId); 
-          timeoutId = setTimeout(() => {
-            const content = this.wysiwyg.contentDocument.body.innerHTML;
-            socket.emit('textUpdate', content);
-            
-            if (!saving) {
-              saving = true;
-              
-              const workspaceName="<%=workspaceName%>";
-              this.saveContentToDatabase(workspaceName, content);
-              
+    <script src="https://cdn.socket.io/4.1.2/socket.io.min.js"></script>
+    <script>
+      const socket = io();
+    
+      function app(workspaceName, username) {
+        let saving = false;
+        let timeoutId;
+        let changesPending = false;
+        let previousContent = '';
+    
+        return {
+          wysiwyg: null,
+    
+          init: async function (el) {
+            this.wysiwyg = el;
+    
+            // Add CSS to the iframe
+            this.wysiwyg.contentDocument.querySelector("head").innerHTML += `
+              <style>
+                *, ::after, ::before { box-sizing: border-box; }
+                :root { tab-size: 4; }
+                html { line-height: 1.15; text-size-adjust: 100%; }
+                body { margin: 0; padding: 1rem 0.5rem; }
+                body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji"; color: #fff; }
+              </style>
+            `;
+    
+            // Fetch initial content
+            try {
+              const response = await fetch(`/workspace/${workspaceName}/${username}`);
+              if (!response.ok) throw new Error("Failed to fetch content from database");
+              const content = await response.text();
+              this.wysiwyg.contentDocument.body.innerHTML = content;
+              previousContent = content;
+            } catch (error) {
+              console.error("Error fetching content:", error);
             }
-          }, 500);
-         
-        });
-        
-
-        observer.observe(this.wysiwyg.contentDocument.body, { childList: true, subtree: true });
-
-
-        socket.on('textUpdate', text => {
-          this.wysiwyg.contentDocument.body.innerHTML = text;
-        });
-        socket.on('message', message => {
-          const messageElement = document.createElement('div');
-          messageElement.textContent = message;
-          document.getElementById('messages').appendChild(messageElement);
-        });
-      },
-
-      format: function (cmd, param) {
-        this.wysiwyg.contentDocument.execCommand(cmd, false, param || null);
-      },
-
-      saveContentToDatabase: async function (workspaceName,content) {
-        console.log('workspaceName:', workspaceName);
-        console.log('Content:', content);
-        fetch(`/save`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+    
+            this.wysiwyg.contentDocument.designMode = "on";
+    
+            this.wysiwyg.contentDocument.body.addEventListener('input', () => {
+              clearTimeout(timeoutId);
+              changesPending = true;
+    
+              timeoutId = setTimeout(() => {
+                const newContent = this.wysiwyg.contentDocument.body.innerHTML;
+                const changes = this.diffContent(previousContent, newContent);
+    
+                if (changes.length > 0) {
+                  socket.emit("textUpdate", changes);
+    
+                  if (!saving) {
+                    saving = true;
+                    changesPending = false;
+                    const workspaceName = "<%= workspaceName %>";
+                    this.updateContentInDatabase(workspaceName, changes)
+                      .then(() => {
+                        previousContent = newContent;
+                        saving = false;
+                        if (changesPending) {
+                          this.handleInput();
+                        }
+                      })
+                      .catch((error) => {
+                        console.error("Error updating content:", error);
+                        saving = false;
+                      });
+                  }
+                }
+              }, 500);
+            });
+    
+            socket.on("textUpdate", (changes) => {
+              this.mergeContentChanges(changes);
+            });
+    
+            socket.on("message", (message) => {
+              const messageElement = document.createElement("div");
+              messageElement.textContent = message;
+              document.getElementById("messages").appendChild(messageElement);
+            });
           },
-          body: JSON.stringify({workspaceName, content }),
-        })
-          .then(response => {
-            if (!response.ok) {
-              return Promise.reject('Failed to save content to database');
+    
+          handleInput: function () {
+            const event = new Event('input');
+            this.wysiwyg.contentDocument.body.dispatchEvent(event);
+          },
+    
+          format: function (cmd, param) {
+            this.wysiwyg.contentDocument.execCommand(cmd, false, param || null);
+          },
+    
+          diffContent: function (oldContent, newContent) {
+            const changes = [];
+            // Implement a simple diff algorithm or use a library for this purpose
+            if (oldContent !== newContent) {
+              changes.push({ oldContent, newContent });
             }
-            alert('Content saved successfully');
-          })
-          .catch(error => {
-            console.error('Error saving content to database:', error);
-          })
-          .finally(() => {
-            saving = false; 
-          });
-      },
-    };
-  }
-</script>
-
+            return changes;
+          },
+    
+          mergeContentChanges: function (changes) {
+            // Implement merging strategy to apply changes intelligently
+            changes.forEach(change => {
+              const currentContent = this.wysiwyg.contentDocument.body.innerHTML;
+              const updatedContent = this.applyChange(currentContent, change);
+              this.wysiwyg.contentDocument.body.innerHTML = updatedContent;
+              previousContent = updatedContent;
+            });
+          },
+    
+          applyChange: function (currentContent, change) {
+            // Implement logic to apply a single change
+            return change.newContent;
+          },
+    
+          updateContentInDatabase: async function (workspaceName, changes) {
+            try {
+              const response = await fetch(`/update`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ workspaceName, changes }),
+              });
+    
+              if (!response.ok) {
+                throw new Error("Failed to update content in database");
+              }
+            } catch (error) {
+              console.error("Error updating content in database:", error);
+            }
+          }
+        };
+      }
+    
+     
+    </script>
+    
 <script>
-  const workspaceName = "<%= workspaceName %>";
-  const username = "<%= username %>"; 
-  const socketApp = app(workspaceName, username);
-
-  // Initialize the editor
-  socketApp.init(document.getElementById('editor'));
-  socket.on('contentUpdate', ({ content }) => {
-   
-    socketApp.wysiwyg.contentDocument.body.innerHTML = content;
-  });
-</script> 
+      const workspaceName = "<%= workspaceName %>";
+      const username = "<%= username %>";
+      const socketApp = app(workspaceName, username);
+    
+      socketApp.init(document.getElementById("editor"));
+    
+      socket.on("contentUpdate", ({ changes }) => {
+        socketApp.mergeContentChanges(changes);
+      });
+    </script>
 
     <script
       type="module"

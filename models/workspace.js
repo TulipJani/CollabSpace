@@ -1,7 +1,7 @@
 const mongoose=require('mongoose');
 const connect=mongoose.connect('mongodb://localhost:27017/HACKNUTHON');
 connect.then(()=>{
-    console.log("connected");
+    console.log(" this is workspace connected");
 })
 .catch(()=>{
     console.log("couldnt connect");
@@ -22,7 +22,6 @@ const workspaceSchema = new mongoose.Schema({
 inviteMembers: [{ type: String }] 
 });
 
-// Create workspace model
 const Workspace = mongoose.model('Workspace', workspaceSchema);
 
 module.exports = Workspace;

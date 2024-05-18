@@ -79,7 +79,7 @@ app.post("/home", async (req, res) => {
   const { workspaceName } = req.body;
 
   try {
-    // Create a new workspace document
+    
     const newWorkspace = new Workspace({
       workspaceName,createdBy: displayName
     });
@@ -110,6 +110,35 @@ app.post('/deleteWorkspace/:workspaceId', async (req, res) => {
   }
 });
 
+app.get('/load', async (req, res) => {
+  try {
+  const content = await Content.findOne();
+  res.send({ content: content ? content.content : '' });
+  } catch (error) {
+  res.status(500).send({ message: 'Error loading content' });
+  }
+  });
+  
+  app.post('/update', async (req, res) => {
+    try {
+      const { workspaceName, content } = req.body;
+      
+      const updatedContent = await Content.findOneAndUpdate(
+        { workspaceName },
+        { content },
+        { new: true, useFindAndModify: false }
+      );
+  
+      if (!updatedContent) {
+        return res.status(404).send({ message: 'Content not found' });
+      }
+  
+      res.send({ message: 'Content updated successfully', updatedContent });
+    } catch (error) {
+      res.status(500).send({ message: 'Error updating content', error: error.message });
+    }
+  });
+  
 function sendCongratulatoryEmail(userEmail) {
   // Email content
   const mailOptions = {
@@ -231,7 +260,7 @@ io.on('connection', socket => {
   socket.on('disconnect', () => {
     console.log('A user disconnected');
   });
-  socket.emit('message', 'Welcome to the collaborative workspace!');
+ 
 });
 app.get("/auth", (req, res) => {
   res.render("googleAuth");
