@@ -31,7 +31,8 @@ io.on('connection',socket=>{
 
 app.use(express.static("public"));
 app.use(cors());
-app.use(session({ secret: "cats" }));
+app.use(session({ secret: "dogs" , resave: false, 
+  saveUninitialized: true, }));
 app.use(passport.initialize());
 app.use(passport.session());
 app.set("view engine", "ejs");
@@ -48,6 +49,9 @@ const transporter = nodemailer.createTransport({
 });
 
 
+app.get('/',(req,res)=>{
+  res.render('index', { title: 'Express Home' });
+})
 app.get('/gittry',(req,res)=>{
   res.render('githome');
 })
@@ -295,7 +299,7 @@ app.get("/logout", (req, res) => {
   req.session.destroy();
   res.send("Goodbye");
 });
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+module.exports = app;
 
-module.export = app;

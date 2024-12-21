@@ -1,0 +1,190 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+  <head> 
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Landing Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/scrollmagic@2.0.8/scrollmagic/minified/ScrollMagic.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/scrollmagic@2.0.8/scrollmagic/minified/plugins/animation.gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.9.1"></script>
+    <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+
+    <style> 
+      .header-background { 
+        background-size: cover; 
+        background-repeat: no-repeat; 
+        background-position: center center; 
+        position: relative;    
+        z-index: 0; 
+        border-radius: 0%; 
+        background-image: url('/images/landbg2.jpg');
+        height: 100vh; 
+        background-attachment: scroll; 
+        background-position: center; 
+        background-repeat: no-repeat; 
+        background-size: cover; 
+        transition: background-position 0.5s ease-out; 
+      } 
+
+      .header-background:hover { 
+        background-position: center 100%; 
+      } 
+
+      .header-content { 
+        position: relative; 
+        z-index: 1; 
+        padding-top: 64px; 
+      } 
+    </style> 
+  </head> 
+  <body> 
+    <div class="flex flex-col min-h-screen"> 
+      <header class="header-background">
+        <div class="container flex items-center justify-between p-5 px-4 sm:px-6 header-content">
+          <a class="w-1/4 flex items-center justify-center gap-5 text-sm font-medium tracking-wider text-gray-50" href="#">
+            <img src="/images/download (1).jpeg" alt="Your Logo" class="h-8 w-8"> 
+            <span>Project Management</span>
+          </a>
+
+          <nav class="w-1/2 flex items-center justify-center gap-5">
+            <a href="#" class="font-medium text-gray-300 transition-colors hover:text-gray-50">Home</a>
+            <a href="#" class="font-medium text-gray-300 transition-colors hover:text-gray-50">Contact</a>
+          </nav>
+
+          <div class="w-1/4 flex items-center justify-center gap-3">
+            <a href="/auth" class="inline-block rounded-full bg-gray-50 p-4 py-2 text-sm font-semibold shadow transition-colors hover:opacity-75">Login</a>
+            <a href="/auth" class="inline-block rounded-full bg-gray-50 p-4 py-2 text-sm font-semibold shadow transition-colors hover:opacity-75">Register</a>
+          </div>
+        </div>
+        <div class="container flex items-center justify-center px-7 space-y-16 text-center md:px-10 lg:space-y-30">
+          <div class="space-y-8">
+            <p class="max-w-[1100px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400"></p>
+          </div>
+          <div class="flex flex-col items-center justify-center space-y-8 md:space-y-8">
+            <h1 id="typed-text" class=" text-8xl font-bold tracking-tighter sm:text-4xl md:text-6xl text-white"></h1>
+
+            <div class="flex flex-col gap-4 min-[400px]:flex-row">
+              <a href="#" class="inline-flex items-center justify-center px-7 py-3 border border-transparent text-base font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors duration-300 ease-in-out hover:shadow-md">Create new</a>
+              <a href="#" class="inline-flex items-center justify-center px-7 py-3 border border-transparent text-base font-medium rounded-md bg-gray-900 text-white hover:bg-gray-800 transition-colors duration-300 ease-in-out hover:shadow-md">Start Tour</a>
+            </div>
+            <div class="container flex justify-center">
+              <img src="https://wpastra.com/wp-content/uploads/2021/12/astra-templates.png" alt="Your Image" class="w-full md:w-auto lg:w-full min-w-[1300px] h-full">
+            </div>
+          </div>
+        </div>
+      </header>
+
+        <section id="section2" class="w-full h-screen py-12 md:py-24 lg:py-32 bg-black">
+          <div class="container grid gap-6 px-4  text-center md:grid-cols-2 md:px-6 lg:gap-12">
+            <div class="flex flex-col justify-center space-y-4">
+              <div class="scale-effect space-y-2">
+                <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white">"Streamline Your Projects with Efficient Management"</h2>
+                <p class="max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">Unlock the power of seamless project management to drive productivity and achieve your goals faster. Our platform offers intuitive tools and insights to keep your projects on track, optimize workflows, and enhance collaboration.</p>
+              </div>
+            </div>
+            <img src="/images/Dashboard-removebg-preview.png" width="100%" height="auto" alt="Image" class="mx-auto aspect-video overflow-hidden object-cover object-center" />
+          </div>
+        </section>
+
+        <section id="section3" class="w-100 h-200 py-12 md:py-24 lg:py-48 bg-white">
+          <div class="container grid gap-6 px-4 text-center md:grid-cols-2 md:px-6 lg:gap-12"> 
+            <img src="/images/3ad04f9045bc3a5a6b46d30c5a22eb45-removebg-preview.png" width="800" height="600" alt="Image" class="mx-auto aspect-video overflow-hidden object-cover object-center"> 
+            <div class="flex flex-col justify-center space-y-4"> 
+              <div class="scale-effect space-y-2"> 
+                <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-black">"Stay Ahead with Smart Scheduling and Planning"</h2> 
+                <p class="max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">Master the art of project scheduling and planning with our user-friendly tools. Create detailed timelines, set milestones, and allocate resources efficiently to ensure timely delivery of every project. Our platform empowers you to adapt to changes seamlessly and stay on top of your project deadlines.</p> 
+              </div> 
+            </div> 
+          </div> 
+        </section>
+
+        <section id="section4" class="w-full h-screen py-12 md:py-24 lg:py-32 bg-black">
+          <div class="container grid gap-6 px-4 text-center md:grid-cols-2 md:px-6 lg:gap-12">
+            <div class="flex flex-col justify-center space-y-4">
+              <div class="scale-effect space-y-2">
+                <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl text-white">
+                  "Optimize Resource Allocation for Success"
+                </h2>
+                <p class="max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">
+                  Maximize the utilization of your resources and drive project success with our advanced resource management capabilities. From team members to equipment and materials, our platform enables you to allocate resources strategically, track availability in real-time, and prevent bottlenecks. Experience improved efficiency and cost-effectiveness across your projects.
+                </p>
+              </div>
+            </div>
+            <img src="/images/files-2.png" width="100%" height="auto" alt="Image" class="mx-auto aspect-video overflow-hidden object-cover object-center" />
+          </div>
+        </section>
+
+
+        <section id="section5" class="w-full py-12 md:py-24 lg:py-32 bg-white text-black">
+          <div class="container flex flex-col items-center justify-center space-y-4 text-center md:space-y-6">
+            <div class="space-y-2">
+              <h2 class="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">The platform for rapid progress. </br>
+                Start tracking your goals with us.</h2>
+              <p class="max-w-[700px] text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed dark:text-gray-400">Let your team focus on shipping features instead of managing infrastructure with automated CI/CD, built-in testing, and integrated collaboration.</p>
+            </div>
+            <div class="flex flex-col gap-4 min-[400px]:flex-row">
+              <a class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md bg-black text-white hover:bg-gray-900 transition-colors duration-300 ease-in-out hover:shadow-md" href="#">Contact</a>
+              <a class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md bg-black text-white hover:bg-gray-900 transition-colors duration-300 ease-in-out hover:shadow-md" href="#">More</a>
+            </div>
+          </div>
+        </section>
+        </main>
+
+
+        <footer class="bg-gray-50 dark:bg-gray-950 bg-cover bg-center" style="background-image: url('/images/landbgfoot.jpg');">
+          <div class="container grid gap-10 px-4 py-12 md:grid-cols-2 md:px-6 lg:py-20">
+            <div class="flex flex-col space-y-6 md:space-y-4">
+              <div class="space-y-4">
+                <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Contact Us</h4>
+                <p class="text-sm leading-loose text-gray-500 md:text-base dark:text-gray-400">
+                  Have questions? Email us at <a href="#" class="text-blue-500 hover:underline">info@example.com</a>.
+                </p>
+              </div>
+            </div>
+            <nav class="flex flex-col items-end space-y-4 md:items-start md:space-y-0">
+              <a class="text-gray-900 dark:text-white hover:text-blue-500 hover:underline" href="#">Features</a>
+              <a class="text-gray-900 dark:text-white hover:text-blue-500 hover:underline" href="#">Pricing</a>
+              <a class="text-gray-900 dark:text-white hover:text-blue-500 hover:underline" href="#">Contact</a>
+            </nav>
+          </div>
+        </footer>
+
+        <script>
+          // Typed.js typing effect
+        var typed = new Typed('#typed-text', {
+          strings: ['Empowering Projects, Simplifying Success.'],
+          typeSpeed: 50, // Adjust the typing speed here
+          loop: false
+        });
+
+          // ScrollMagic for fancy scrolling effects
+          var controller = new ScrollMagic.Controller();
+
+          // Scale effect for elements with the class 'scale-effect'
+  document.querySelectorAll('.scale-effect').forEach(element => {
+    new ScrollMagic.Scene({
+      triggerElement: element,
+      triggerHook: 10, // Adjust this value to control when the animation starts
+      duration: '150%' // Adjust the duration of the scale effect
+    })
+    .setTween(TweenMax.fromTo(element, 1, { scale: 0.6 }, { scale: 1, ease: Power1.easeNone })) // Adjust the animation parameters as needed
+    .addTo(controller);
+  });
+
+          // Smooth scrolling effect
+          document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+              e.preventDefault();
+
+              const target = document.querySelector(this.getAttribute('href'));
+              target.scrollIntoView({
+                behavior: 'smooth'
+              });
+            });
+          });
+        </script>
+
+      </div> 
+    </body> 
+  </html>

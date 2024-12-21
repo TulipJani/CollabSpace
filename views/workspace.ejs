@@ -289,7 +289,7 @@
                   </button>
                 </div>
                 <div class="w-full">
-                  <section> <p><%= content ? content.content : "No content available" %></p></section>
+                  <section> <p><%= content ? content.content : "write here" %></p></section>
                   <iframe
                     x-ref="wysiwyg"
                     class="w-full h-96 overflow-y-auto text-white"
@@ -342,12 +342,12 @@
         let saving = false;
         let timeoutId;
         let changesPending = false;
-        let previousContent = '';
     
         return {
           wysiwyg: null,
     
           init: async function (el) {
+            // Get element
             this.wysiwyg = el;
     
             // Add CSS to the iframe
@@ -367,47 +367,43 @@
               if (!response.ok) throw new Error("Failed to fetch content from database");
               const content = await response.text();
               this.wysiwyg.contentDocument.body.innerHTML = content;
-              previousContent = content;
             } catch (error) {
               console.error("Error fetching content:", error);
             }
     
             this.wysiwyg.contentDocument.designMode = "on";
     
+            // Add event listener for input changes
             this.wysiwyg.contentDocument.body.addEventListener('input', () => {
               clearTimeout(timeoutId);
               changesPending = true;
     
               timeoutId = setTimeout(() => {
-                const newContent = this.wysiwyg.contentDocument.body.innerHTML;
-                const changes = this.diffContent(previousContent, newContent);
+                const content = this.wysiwyg.contentDocument.body.innerHTML;
+                socket.emit("textUpdate", content);
     
-                if (changes.length > 0) {
-                  socket.emit("textUpdate", changes);
-    
-                  if (!saving) {
-                    saving = true;
-                    changesPending = false;
-                    const workspaceName = "<%= workspaceName %>";
-                    this.updateContentInDatabase(workspaceName, changes)
-                      .then(() => {
-                        previousContent = newContent;
-                        saving = false;
-                        if (changesPending) {
-                          this.handleInput();
-                        }
-                      })
-                      .catch((error) => {
-                        console.error("Error updating content:", error);
-                        saving = false;
-                      });
-                  }
+                if (!saving) {
+                  saving = true;
+                  changesPending = false;
+                  const workspaceName = "<%= workspaceName %>";
+                  this.saveContentToDatabase(workspaceName, content)
+                    .then(() => {
+                      saving = false;
+                      if (changesPending) {
+                        this.handleInput();
+                      }
+                    })
+                    .catch((error) => {
+                      console.error("Error saving content:", error);
+                      saving = false;
+                    });
                 }
               }, 500);
             });
     
-            socket.on("textUpdate", (changes) => {
-              this.mergeContentChanges(changes);
+            
+            socket.on("textUpdate", (text) => {
+              this.wysiwyg.contentDocument.body.innerHTML = text;
             });
     
             socket.on("message", (message) => {
@@ -426,65 +422,39 @@
             this.wysiwyg.contentDocument.execCommand(cmd, false, param || null);
           },
     
-          diffContent: function (oldContent, newContent) {
-            const changes = [];
-            // Implement a simple diff algorithm or use a library for this purpose
-            if (oldContent !== newContent) {
-              changes.push({ oldContent, newContent });
-            }
-            return changes;
-          },
-    
-          mergeContentChanges: function (changes) {
-            // Implement merging strategy to apply changes intelligently
-            changes.forEach(change => {
-              const currentContent = this.wysiwyg.contentDocument.body.innerHTML;
-              const updatedContent = this.applyChange(currentContent, change);
-              this.wysiwyg.contentDocument.body.innerHTML = updatedContent;
-              previousContent = updatedContent;
-            });
-          },
-    
-          applyChange: function (currentContent, change) {
-            // Implement logic to apply a single change
-            return change.newContent;
-          },
-    
-          updateContentInDatabase: async function (workspaceName, changes) {
+          saveContentToDatabase: async function (workspaceName, content) {
+            console.log("workspaceName:", workspaceName);
+            console.log("Content:", content);
             try {
-              const response = await fetch(`/update`, {
+              const response = await fetch(`/save`, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ workspaceName, changes }),
+                body: JSON.stringify({ workspaceName, content }),
               });
     
               if (!response.ok) {
-                throw new Error("Failed to update content in database");
+                throw new Error("Failed to save content to database");
               }
             } catch (error) {
-              console.error("Error updating content in database:", error);
+              console.error("Error saving content to database:", error);
             }
-          }
+          },
         };
       }
-    
-     
-    </script>
-    
-<script>
-      const workspaceName = "<%= workspaceName %>";
-      const username = "<%= username %>";
-      const socketApp = app(workspaceName, username);
-    
-      socketApp.init(document.getElementById("editor"));
-    
-      socket.on("contentUpdate", ({ changes }) => {
-        socketApp.mergeContentChanges(changes);
-      });
-    </script>
 
+    </script> 
+  <script>
+  const workspaceName = "<%= workspaceName %>";
+    const username = "<%= username %>";
+    const socketApp = app(workspaceName, username);
+    
+    socketApp.init(document.getElementById("editor"));
+    
+    socket.on("contentUpdate", ({ changes }) => {
+      socketApp.mergeContentChanges(changes);
+    });</script>
     <script
       type="module"
       src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"

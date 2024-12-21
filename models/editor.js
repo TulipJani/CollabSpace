@@ -1,7 +1,7 @@
 const mongoose=require("mongoose");
 const Workspace = require("./workspace");
-
-const connect=mongoose.connect('mongodb://localhost:27017/HACKNUTHON');
+const con_url="mongodb+srv://aakub1096:WeT2bzfibItBeoWB@collab-cluster.6pu29.mongodb.net/?retryWrites=true&w=majority&appName=collab-cluster"
+const connect=mongoose.connect(con_url);
 connect.then(()=>{
     console.log("this connects to editor");
 })
