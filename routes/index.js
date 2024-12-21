@@ -57,7 +57,7 @@ app.get('/',(req,res)=>{
 app.get('/gittry',(req,res)=>{
   res.render('githome');
 })
-app.get("/home", isLoggedIn, async (req, res) => {
+app.get("/home", async (req, res) => {
   const { displayName, email } = req.user;
   const guser = new Glog({
     displayName,
