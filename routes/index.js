@@ -269,22 +269,21 @@ io.on('connection', socket => {
  
 });
 app.get("/auth", (req, res) => {
+  console.log('Rendering Google Authentication page');
   res.render("googleAuth");
 });
-app.get(
-  "/auth/google",
-  passport.authenticate("google", { scope: ["email", "profile"] })
-);
-app.get(
-  "/google/callback",
-  passport.authenticate("google", {
-    successRedirect: "/home",
-    failureRedirect: "/auth/fail",
-  })
-);
-app.get("/auth/fail", (req, res) => {
-  res.send("SOmething went wrong");
+
+app.get("/auth/google", passport.authenticate("google", { scope: ["email", "profile"] }), (req, res) => {
+  console.log('Initiating Google authentication');
 });
+
+app.get("/google/callback", passport.authenticate("google", {
+  successRedirect: "/home",
+  failureRedirect: "/auth/fail",
+}), (req, res) => {
+  console.log('Google authentication callback');
+});
+
 
 app.get('/auth/github',
   passport.authenticate('github', { scope: [ 'user:email' ] }));
