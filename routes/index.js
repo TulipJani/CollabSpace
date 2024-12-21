@@ -52,6 +52,8 @@ const transporter = nodemailer.createTransport({
 app.get('/',(req,res)=>{
   res.render('index', { title: 'Express Home' });
 })
+
+
 app.get('/gittry',(req,res)=>{
   res.render('githome');
 })
