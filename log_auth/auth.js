@@ -5,7 +5,7 @@ const GOOGLE_CLIENT_SECRET='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';
 passport.use(new GoogleStrategy({
     clientID:     GOOGLE_CLIENT_ID,
     clientSecret: GOOGLE_CLIENT_SECRET,
-    callbackURL: "https://collab-space.vercel.app/google/callback",
+    callbackURL: "https://collab-space.vercel.app/google/callback/",
     passReqToCallback   : true
   },
   function(request, accessToken, refreshToken, profile, done) {
