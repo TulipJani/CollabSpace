@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "engines": {
-    "node": "22.x" 
+    "node": "22.x"
   },
   "scripts": {
     "start": "node app.js",
@@ -30,6 +30,7 @@
     "passport-google-oauth2": "^0.2.0",
     "path": "^0.12.7",
     "socket.io": "^4.7.5",
+    "timeout-then": "^2.0.0",
     "transporter": "^0.0.1",
     "validator": "^13.11.0"
   }

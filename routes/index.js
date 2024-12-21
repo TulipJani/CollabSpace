@@ -2,6 +2,7 @@ const express = require("express");
 const session = require("express-session");
 const auth = require("../log_auth/auth");
 const git_auth=require("../log_auth/git_auth");
+const timeout = require('timeout-then');
 const fs = require("fs");
 const cors=require('cors');
 const Content=require("../models/content");
@@ -69,8 +70,7 @@ app.get("/home", isLoggedIn, async (req, res) => {
     await guser.save();
     sendCongratulatoryEmail(email);
     
-   const workspaces = await Workspace.find({ createdBy: displayName });
-
+    const workspaces = await timeout(Workspace.find({ createdBy: displayName }), 5000);
     res.render("home", { displayName,workspaces });
   } catch (error) {
     console.error("Error in /home route:", error);
