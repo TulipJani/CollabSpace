@@ -88,7 +88,7 @@ app.get("/home", isLoggedIn, async (req, res) => {
   } catch (error) {
     console.error("Error in /home route:", error.message);
 
-    // Differentiate between timeout and other errors
+   
     if (error.message === "Query Timeout") {
       res.status(504).send("Request timed out. Please try again.");
     } else {
