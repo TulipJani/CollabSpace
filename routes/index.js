@@ -73,9 +73,9 @@ app.get("/home", isLoggedIn, async (req, res) => {
     console.log("User data saved successfully for:", { displayName, email });
 
     // Send the email asynchronously
-    sendCongratulatoryEmail(email)
-      .then(() => console.log(`Email sent successfully to ${email}`))
-      .catch((err) => console.error("Email sending error:", err));
+   // sendCongratulatoryEmail(email)
+     // .then(() => console.log(`Email sent successfully to ${email}`))
+     // .catch((err) => console.error("Email sending error:", err));
 
     // Fetch workspaces (removing timeout logic)
     console.time("Workspace Query Execution");
@@ -87,8 +87,9 @@ app.get("/home", isLoggedIn, async (req, res) => {
       console.log(`No workspaces found for user: ${displayName}`);
     }
 
-    // Render the home page with workspaces
-    res.render("home", { displayName, workspaces });
+    res.json({ displayName, workspaces });
+
+    //res.render("home", { displayName, workspaces });
     console.log("Home page rendered successfully for:", displayName);
   } catch (error) {
     // Log detailed error messages
