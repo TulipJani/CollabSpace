@@ -63,16 +63,19 @@ app.get("/home", isLoggedIn, async (req, res) => {
   const { displayName, email } = req.user;
 
   try {
-    // Save the user data asynchronously
-    const guser = new Glog({ displayName, email });
-    guser.save().catch((err) => console.error("Error saving user:", err));
+    // Save the user data
+    const guser = new Glog({
+      displayName,
+      email,
+    });
+    await guser.save();
 
     // Send the email asynchronously
     sendCongratulatoryEmail(email)
       .then(() => console.log("Email sent successfully"))
       .catch((err) => console.error("Email Error:", err));
 
-    // Fetch workspaces with pagination (reduce query size for faster execution)
+    // Fetch workspaces with pagination (optimized query)
     const page = parseInt(req.query.page) || 1; // Default to page 1
     const limit = 10; // Limit results to 10 per page
     const workspaces = await Workspace.find({ createdBy: displayName })
@@ -84,9 +87,12 @@ app.get("/home", isLoggedIn, async (req, res) => {
     res.render("home", { displayName, workspaces });
   } catch (error) {
     console.error("Error in GET /home route:", error.message);
+
+    // Return a meaningful error to the user
     res.status(500).send("Internal Server Error");
   }
 });
+
 
 app.post("/home", isLoggedIn, async (req, res) => {
   const { displayName } = req.user;
@@ -160,24 +166,29 @@ app.get('/load', async (req, res) => {
     }
   });
   
-function sendCongratulatoryEmail(userEmail) {
-  // Email content
-  const mailOptions = {
-    from: "hacathon2k23@gmail.com",
-    to: userEmail,
-    subject: "Congratulations on your successful login!",
-    text: "Thank you for logging in.",
-  };
-
-  // Send email
-  transporter.sendMail(mailOptions, function (error, info) {
-    if (error) {
-      console.log("Error sending email:", error);
-    } else {
-      console.log("Email sent:", info.response);
-    }
-  });
-}
+  function sendCongratulatoryEmail(userEmail) {
+    return new Promise((resolve, reject) => {
+      // Email content
+      const mailOptions = {
+        from: "hacathon2k23@gmail.com",
+        to: userEmail,
+        subject: "Congratulations on your successful login!",
+        text: "Thank you for logging in.",
+      };
+  
+      // Send email
+      transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          console.log("Error sending email:", error);
+          reject(error); // Reject the Promise with the error
+        } else {
+          console.log("Email sent:", info.response);
+          resolve(info.response); // Resolve the Promise with the response
+        }
+      });
+    });
+  }
+  
 
 app.all('/workspace/:workspaceName/:username', async (req, res) => {
   const { workspaceName, username } = req.params;
