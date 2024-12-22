@@ -9,13 +9,14 @@ const Content=require("../models/content");
 const validator=require("validator");
 const Workspace = require("../models/workspace");
 const nodemailer = require("nodemailer");
-
+const NodeCache = require("node-cache");
 const passport = require("passport");
 function isLoggedIn(req, res, next) {
   req.user ? next() : res.sendStatus(401);
 }
 const bodyParser = require("body-parser");
 
+const workspaceCache = new NodeCache({ stdTTL: 600 }); // Cache for 10 minute
 const path = require("path");
 const multer = require("multer");
 
@@ -50,7 +51,7 @@ const transporter = nodemailer.createTransport({
 });
 
 
-const NodeCache = require("node-cache");
+
 const workspaceCache = new NodeCache({ stdTTL: 600 }); // Cache for 10 minutes
 
 // Timeout utility function
