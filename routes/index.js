@@ -59,49 +59,35 @@ app.get('/',(req,res)=>{
 app.get('/gittry',(req,res)=>{
   res.render('githome');
 })
-const timeout = require("timeout-then");
 app.get("/home", isLoggedIn, async (req, res) => {
   const { displayName, email } = req.user;
 
   try {
-    // Save the user data
-    const guser = new Glog({
-      displayName,
-      email,
-    });
-    await guser.save();
-    console.log("User data saved successfully for:", { displayName, email });
+    // Save user data and send email asynchronously
+    const guser = new Glog({ displayName, email });
+    guser.save().catch((err) => console.error("User Save Error:", err));
+    sendCongratulatoryEmail(email).catch((err) => console.error("Email Error:", err));
 
-    // Send the email asynchronously
-   // sendCongratulatoryEmail(email)
-     // .then(() => console.log(`Email sent successfully to ${email}`))
-     // .catch((err) => console.error("Email sending error:", err));
+    // Paginate workspaces to avoid long queries
+    const page = parseInt(req.query.page) || 1; // Default to page 1
+    const limit = 10; // Limit results per page
+    const workspaces = await Workspace.find({ createdBy: displayName })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
 
-    // Fetch workspaces (removing timeout logic)
-    console.time("Workspace Query Execution");
-    const workspaces = await Workspace.find({ createdBy: displayName }).exec();
-    console.timeEnd("Workspace Query Execution");
-
-    // Check if workspaces exist and log details
-    if (!workspaces.length) {
-      console.log(`No workspaces found for user: ${displayName}`);
-    }
-
-    res.json({ displayName, workspaces });
-
-    //res.render("home", { displayName, workspaces });
-    console.log("Home page rendered successfully for:", displayName);
+    // Render the home page
+    res.render("home", { displayName, workspaces });
   } catch (error) {
-    // Log detailed error messages
-    console.error("Error in /home route:", error.message);
-    console.error("Stack trace:", error.stack);
+    console.error("Error in GET /home route:", error.message);
 
-    // Send a generic error response
+    // Send appropriate error response
     res.status(500).send("Internal Server Error");
   }
 });
 
-app.post("/home", async (req, res) => {
+
+app.post("/home", isLoggedIn, async (req, res) => {
   const { displayName } = req.user;
   const { workspaceName } = req.body;
 
@@ -112,19 +98,17 @@ app.post("/home", async (req, res) => {
       createdBy: displayName,
     });
     await newWorkspace.save();
-    console.log("Workspace created successfully:", workspaceName);
 
-    // Redirect to the workspace route
+    // Redirect to the new workspace page
     res.redirect(`/workspace/${workspaceName}/${displayName}`);
   } catch (error) {
-    // Log the error details
-    console.error("Error saving workspace:", error.message);
-    console.error("Stack trace:", error.stack);
+    console.error("Error in POST /home route:", error.message);
 
-    // Send a generic error response
+    // Send appropriate error response
     res.status(500).send("Internal Server Error");
   }
 });
+
 
 
 app.post('/deleteWorkspace/:workspaceId', async (req, res) => {
