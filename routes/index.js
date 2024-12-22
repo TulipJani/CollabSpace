@@ -63,18 +63,21 @@ app.get("/home", isLoggedIn, async (req, res) => {
   const { displayName, email } = req.user;
 
   try {
-    // Save user data and send email asynchronously
+    // Save user data
     const guser = new Glog({ displayName, email });
-    guser.save().catch((err) => console.error("User Save Error:", err));
-    sendCongratulatoryEmail(email).catch((err) => console.error("Email Error:", err));
+    await guser.save(); // Save is awaited correctly
 
-    // Paginate workspaces to avoid long queries
+    // Send email asynchronously (not awaited, but errors are logged)
+    sendCongratulatoryEmail(email)
+      .then(() => console.log("Email sent successfully"))
+      .catch((err) => console.error("Email Error:", err));
+
+    // Fetch workspaces with pagination to reduce query size
     const page = parseInt(req.query.page) || 1; // Default to page 1
-    const limit = 10; // Limit results per page
+    const limit = 10; // Fetch up to 10 workspaces at a time
     const workspaces = await Workspace.find({ createdBy: displayName })
       .skip((page - 1) * limit)
-      .limit(limit)
-      .exec();
+      .limit(limit);
 
     // Render the home page
     res.render("home", { displayName, workspaces });
@@ -92,6 +95,11 @@ app.post("/home", isLoggedIn, async (req, res) => {
   const { workspaceName } = req.body;
 
   try {
+    // Validate input
+    if (!workspaceName || typeof workspaceName !== "string") {
+      throw new Error("Invalid workspace name");
+    }
+
     // Create a new workspace
     const newWorkspace = new Workspace({
       workspaceName,
