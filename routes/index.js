@@ -59,6 +59,39 @@ app.get('/',(req,res)=>{
 app.get('/gittry',(req,res)=>{
   res.render('githome');
 })
+const Queue = require('bull');
+const emailQueue = new Queue('email', {
+  redis: { host: 'localhost', port: 6379 }, // Your Redis server config
+});
+
+function sendCongratulatoryEmail(userEmail) {
+  // Add email job to queue
+  emailQueue.add({ email: userEmail });
+}
+
+// Process email jobs in the background
+emailQueue.process(async (job) => {
+  const { email } = job.data;
+  const mailOptions = {
+    from: "hacathon2k23@gmail.com",
+    to: email,
+    subject: "Congratulations on your successful login!",
+    text: "Thank you for logging in.",
+  };
+
+  return new Promise((resolve, reject) => {
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log("Error sending email:", error);
+        reject(error);
+      } else {
+        console.log("Email sent:", info.response);
+        resolve(info.response);
+      }
+    });
+  });
+});
+
 app.get("/home", isLoggedIn, async (req, res) => {
   const { displayName, email } = req.user;
 
@@ -71,9 +104,7 @@ app.get("/home", isLoggedIn, async (req, res) => {
     await guser.save();
 
     // Send the email asynchronously
-    //sendCongratulatoryEmail(email)
-     // .then(() => console.log("Email sent successfully"))
-     // .catch((err) => console.error("Email Error:", err));
+    sendCongratulatoryEmail(email); // No need to wait for this
 
     // Fetch workspaces with pagination (optimized query)
     const page = parseInt(req.query.page) || 1; // Default to page 1
@@ -87,11 +118,10 @@ app.get("/home", isLoggedIn, async (req, res) => {
     res.render("home", { displayName, workspaces });
   } catch (error) {
     console.error("Error in GET /home route:", error.message);
-
-    // Return a meaningful error to the user
     res.status(500).send("Internal Server Error");
   }
 });
+
 
 
 app.post("/home", isLoggedIn, async (req, res) => {
