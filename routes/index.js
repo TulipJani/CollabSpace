@@ -71,9 +71,9 @@ app.get("/home", isLoggedIn, async (req, res) => {
     await guser.save();
 
     // Send the email asynchronously
-    sendCongratulatoryEmail(email)
-      .then(() => console.log("Email sent successfully"))
-      .catch((err) => console.error("Email Error:", err));
+    //sendCongratulatoryEmail(email)
+     // .then(() => console.log("Email sent successfully"))
+     // .catch((err) => console.error("Email Error:", err));
 
     // Fetch workspaces with pagination (optimized query)
     const page = parseInt(req.query.page) || 1; // Default to page 1
