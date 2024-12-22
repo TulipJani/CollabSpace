@@ -59,24 +59,41 @@ app.get('/',(req,res)=>{
 app.get('/gittry',(req,res)=>{
   res.render('githome');
 })
+const timeout = require("timeout-then");
 
 app.get("/home", isLoggedIn, async (req, res) => {
   const { displayName, email } = req.user;
-  const guser = new Glog({
-    displayName,
-    email,
-  });
 
   try {
-   
+    // Save the user data
+    const guser = new Glog({
+      displayName,
+      email,
+    });
     await guser.save();
-    sendCongratulatoryEmail(email);
-    
-    const workspaces = await timeout(Workspace.find({ createdBy: displayName }), 5000);
-    res.render("home", { displayName,workspaces });
+
+    // Send the email asynchronously (non-blocking)
+    sendCongratulatoryEmail(email).catch((err) => console.error("Email Error:", err));
+
+    // Fetch workspaces with a timeout
+    const workspaces = await Promise.race([
+      Workspace.find({ createdBy: displayName }).exec(), // Execute the query
+      timeout(5000).then(() => {
+        throw new Error("Query Timeout"); // Custom timeout error
+      }),
+    ]);
+
+    // Render the home page
+    res.render("home", { displayName, workspaces });
   } catch (error) {
-    console.error("Error in /home route:", error);
-    res.status(500).send("Internal Server Error");
+    console.error("Error in /home route:", error.message);
+
+    // Differentiate between timeout and other errors
+    if (error.message === "Query Timeout") {
+      res.status(504).send("Request timed out. Please try again.");
+    } else {
+      res.status(500).send("Internal Server Error");
+    }
   }
 });
 
