@@ -9,14 +9,13 @@ const Content=require("../models/content");
 const validator=require("validator");
 const Workspace = require("../models/workspace");
 const nodemailer = require("nodemailer");
-const NodeCache = require("node-cache");
+
 const passport = require("passport");
 function isLoggedIn(req, res, next) {
   req.user ? next() : res.sendStatus(401);
 }
 const bodyParser = require("body-parser");
 
-const workspaceCache = new NodeCache({ stdTTL: 600 }); // Cache for 10 minute
 const path = require("path");
 const multer = require("multer");
 
@@ -51,7 +50,7 @@ const transporter = nodemailer.createTransport({
 });
 
 
-
+const NodeCache = require("node-cache");
 const workspaceCache = new NodeCache({ stdTTL: 600 }); // Cache for 10 minutes
 
 // Timeout utility function
@@ -74,51 +73,40 @@ app.get('/gittry',(req,res)=>{
 
 app.get("/home", isLoggedIn, async (req, res) => {
   const { displayName, email } = req.user;
+  const guser = new Glog({
+    displayName,
+    email,
+  });
 
   try {
-    // Check if workspaces are cached
-    const cachedWorkspaces = workspaceCache.get(displayName);
-    if (cachedWorkspaces) {
-      console.log("Cache hit for user:", displayName);
-      return res.render("home", { displayName, workspaces: cachedWorkspaces });
-    }
-
-    // Save user information (async, no blocking)
-    const guser = new Glog({ displayName, email });
-    guser.save().catch((err) => console.error("Error saving user:", err));
-
-    // Fetch workspaces with a timeout
+   
+    await guser.save();
+    sendCongratulatoryEmail(email);
+    
     const workspaces = await timeout(Workspace.find({ createdBy: displayName }), 5000);
-
-    // Cache workspaces for faster future access
-    workspaceCache.set(displayName, workspaces);
-
-    // Render the home page with fetched workspaces
-    res.render("home", { displayName, workspaces });
+    res.render("home", { displayName,workspaces });
   } catch (error) {
-    console.error("Error in /home route:", error.message);
+    console.error("Error in /home route:", error);
     res.status(500).send("Internal Server Error");
   }
 });
 
-// POST /home route
-app.post("/home", isLoggedIn, async (req, res) => {
+
+app.post("/home", async (req, res) => {
   const { displayName } = req.user;
+
   const { workspaceName } = req.body;
 
   try {
-    // Save new workspace
+    
     const newWorkspace = new Workspace({
-      workspaceName,
-      createdBy: displayName,
+      workspaceName,createdBy: displayName
     });
-
     await newWorkspace.save();
-
-    // Redirect to the new workspace page
-    res.redirect(`/workspace/${workspaceName}/${displayName}`);
+    username=displayName;
+    res.redirect(`/workspace/${workspaceName}/${username}`);
   } catch (error) {
-    console.error("Error saving workspace:", error.message);
+    console.error("Error saving workspace:", error);
     res.status(500).send("Internal Server Error");
   }
 });
