@@ -50,17 +50,6 @@ const transporter = nodemailer.createTransport({
 });
 
 
-const NodeCache = require("node-cache");
-const workspaceCache = new NodeCache({ stdTTL: 600 }); // Cache for 10 minutes
-
-// Timeout utility function
-function timeout(promise, ms) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error("Query Timeout")), ms)),
-  ]);
-}
-
 
 app.get('/',(req,res)=>{
   res.render('index', { title: 'Express Home' });
