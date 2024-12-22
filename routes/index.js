@@ -2,7 +2,7 @@ const express = require("express");
 const session = require("express-session");
 const auth = require("../log_auth/auth");
 const git_auth=require("../log_auth/git_auth");
-const timeout = require('timeout-then');
+
 const fs = require("fs");
 const cors=require('cors');
 const Content=require("../models/content");
