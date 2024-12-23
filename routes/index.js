@@ -123,28 +123,50 @@ app.get("/home", isLoggedIn, async (req, res) => {
   }
 });
 
-
 app.post("/home", isLoggedIn, async (req, res) => {
   const { displayName } = req.user;
   const { workspaceName } = req.body;
 
   try {
-    if (!workspaceName?.trim()) {
-      return res.status(400).send("Invalid workspace name");
+    console.time("Validate Workspace Name");
+    // Validate workspace name
+    if (!workspaceName || typeof workspaceName !== "string" || workspaceName.trim() === "") {
+      throw new Error("Invalid workspace name");
     }
+    console.timeEnd("Validate Workspace Name");
 
+    console.time("Check Duplicate Workspace");
+    // Check if a workspace with the same name already exists for the user
+    const existingWorkspace = await Workspace.findOne({ workspaceName, createdBy: displayName });
+    if (existingWorkspace) {
+      throw new Error("Workspace with this name already exists");
+    }
+    console.timeEnd("Check Duplicate Workspace");
+
+    console.time("Create New Workspace");
     // Create a new workspace
     const newWorkspace = new Workspace({ workspaceName, createdBy: displayName });
     await newWorkspace.save();
+    console.timeEnd("Create New Workspace");
 
-    // Redirect to the new workspace page
+    console.time("Redirect to Workspace");
+    // Redirect to the newly created workspace page
     res.redirect(`/workspace/${workspaceName}/${displayName}`);
+    console.timeEnd("Redirect to Workspace");
   } catch (error) {
     console.error("Error in POST /home route:", error.stack || error.message);
+
+    // Send detailed error response for debugging (optional in production)
+    if (error.message === "Invalid workspace name") {
+      return res.status(400).send("Invalid workspace name. Please provide a valid name.");
+    }
+    if (error.message === "Workspace with this name already exists") {
+      return res.status(409).send("A workspace with this name already exists.");
+    }
+
     res.status(500).send("Internal Server Error");
   }
 });
-
 
 
 
