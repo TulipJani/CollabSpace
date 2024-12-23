@@ -96,17 +96,15 @@ app.get("/home", isLoggedIn, async (req, res) => {
   const { displayName, email } = req.user;
 
   try {
-    // Save the user data without blocking
-    Glog.updateOne(
-      { email },
-      { displayName, email },
-      { upsert: true } // Insert if not exists
-    ).exec();
+    console.time("Save User Data");
+    Glog.updateOne({ email }, { displayName, email }, { upsert: true }).exec();
+    console.timeEnd("Save User Data");
 
-    // Send the email asynchronously
+    console.time("Send Email");
     sendCongratulatoryEmail(email);
+    console.timeEnd("Send Email");
 
-    // Fetch workspaces with pagination
+    console.time("Fetch Workspaces");
     const page = parseInt(req.query.page) || 1;
     const limit = 10;
     const workspaces = await Workspace.find({ createdBy: displayName })
@@ -114,9 +112,11 @@ app.get("/home", isLoggedIn, async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
+    console.timeEnd("Fetch Workspaces");
 
-    // Render the home page
+    console.time("Render Home");
     res.render("home", { displayName, workspaces });
+    console.timeEnd("Render Home");
   } catch (error) {
     console.error("Error in GET /home route:", error.stack || error.message);
     res.status(500).send("Internal Server Error");
