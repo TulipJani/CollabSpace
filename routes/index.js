@@ -96,32 +96,32 @@ app.get("/home", isLoggedIn, async (req, res) => {
   const { displayName, email } = req.user;
 
   try {
-    // Save the user data
-    const guser = new Glog({
-      displayName,
-      email,
-    });
-    await guser.save();
+    // Save the user data without blocking
+    Glog.updateOne(
+      { email },
+      { displayName, email },
+      { upsert: true } // Insert if not exists
+    ).exec();
 
     // Send the email asynchronously
-    sendCongratulatoryEmail(email); // No need to wait for this
+    sendCongratulatoryEmail(email);
 
-    // Fetch workspaces with pagination (optimized query)
-    const page = parseInt(req.query.page) || 1; // Default to page 1
-    const limit = 10; // Limit results to 10 per page
+    // Fetch workspaces with pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = 10;
     const workspaces = await Workspace.find({ createdBy: displayName })
-      .select("workspaceName createdBy") // Fetch only necessary fields
+      .select("workspaceName createdBy")
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     // Render the home page
     res.render("home", { displayName, workspaces });
   } catch (error) {
-    console.error("Error in GET /home route:", error.message);
+    console.error("Error in GET /home route:", error.stack || error.message);
     res.status(500).send("Internal Server Error");
   }
 });
-
 
 
 app.post("/home", isLoggedIn, async (req, res) => {
@@ -129,9 +129,8 @@ app.post("/home", isLoggedIn, async (req, res) => {
   const { workspaceName } = req.body;
 
   try {
-    // Validate workspace name
-    if (!workspaceName || typeof workspaceName !== "string") {
-      throw new Error("Invalid workspace name");
+    if (!workspaceName?.trim()) {
+      return res.status(400).send("Invalid workspace name");
     }
 
     // Create a new workspace
@@ -141,7 +140,7 @@ app.post("/home", isLoggedIn, async (req, res) => {
     // Redirect to the new workspace page
     res.redirect(`/workspace/${workspaceName}/${displayName}`);
   } catch (error) {
-    console.error("Error in POST /home route:", error.message);
+    console.error("Error in POST /home route:", error.stack || error.message);
     res.status(500).send("Internal Server Error");
   }
 });
