@@ -96,29 +96,47 @@ app.get("/home", isLoggedIn, async (req, res) => {
   const { displayName, email } = req.user;
 
   try {
+    console.time("Total Request Time");
+
+    // Step 1: Save user data (timed)
     console.time("Save User Data");
-    Glog.updateOne({ email }, { displayName, email }, { upsert: true }).exec();
+    const guser = new Glog({
+      displayName,
+      email,
+    });
+    await guser.save();
     console.timeEnd("Save User Data");
 
+    // Step 2: Send congratulatory email (non-blocking)
     console.time("Send Email");
-    sendCongratulatoryEmail(email);
+    sendCongratulatoryEmail(email); // Fire-and-forget
     console.timeEnd("Send Email");
 
+    // Step 3: Fetch workspaces with pagination
     console.time("Fetch Workspaces");
-    const page = parseInt(req.query.page) || 1;
-    const limit = 10;
+    const page = parseInt(req.query.page) || 1; // Default to page 1
+    const limit = 10; // Fetch 10 results per page
     const workspaces = await Workspace.find({ createdBy: displayName })
-      .select("workspaceName createdBy")
+      .select("workspaceName createdBy") // Fetch only required fields
       .skip((page - 1) * limit)
       .limit(limit)
-      .lean();
+      .lean(); // Return plain JavaScript objects for faster rendering
     console.timeEnd("Fetch Workspaces");
 
+    // Step 4: Render the home page
     console.time("Render Home");
     res.render("home", { displayName, workspaces });
     console.timeEnd("Render Home");
+
+    console.timeEnd("Total Request Time");
   } catch (error) {
     console.error("Error in GET /home route:", error.stack || error.message);
+
+    // Detailed error response
+    if (error.name === "ValidationError") {
+      return res.status(400).send("Invalid request data.");
+    }
+
     res.status(500).send("Internal Server Error");
   }
 });
