@@ -140,51 +140,56 @@ app.get("/home", isLoggedIn, async (req, res) => {
     res.status(500).send("Internal Server Error");
   }
 });
-
-app.post("/home", isLoggedIn, async (req, res) => {
+// POST /create-workspace - New Route
+app.post("/create-workspace", isLoggedIn, async (req, res) => {
   const { displayName } = req.user;
   const { workspaceName } = req.body;
 
   try {
-    console.time("Validate Workspace Name");
-    // Validate workspace name
+    console.time("Total Request Time");
+
+    // Step 1: Validate workspace name
     if (!workspaceName || typeof workspaceName !== "string" || workspaceName.trim() === "") {
-      throw new Error("Invalid workspace name");
+      console.error("Invalid workspace name provided");
+      return res.status(400).json({ error: "Invalid workspace name." });
     }
-    console.timeEnd("Validate Workspace Name");
 
-    console.time("Check Duplicate Workspace");
-    // Check if a workspace with the same name already exists for the user
-    const existingWorkspace = await Workspace.findOne({ workspaceName, createdBy: displayName });
+    console.time("Create Workspace");
+
+    // Step 2: Check if workspace already exists
+    const existingWorkspace = await Workspace.findOne({ workspaceName, createdBy: displayName }).lean();
     if (existingWorkspace) {
-      throw new Error("Workspace with this name already exists");
+      console.error("Workspace already exists.");
+      return res.status(409).json({ error: "Workspace already exists." });
     }
-    console.timeEnd("Check Duplicate Workspace");
 
-    console.time("Create New Workspace");
-    // Create a new workspace
+    // Step 3: Create a new workspace
     const newWorkspace = new Workspace({ workspaceName, createdBy: displayName });
     await newWorkspace.save();
-    console.timeEnd("Create New Workspace");
+    console.timeEnd("Create Workspace");
 
-    console.time("Redirect to Workspace");
-    // Redirect to the newly created workspace page
-    res.redirect(`/workspace/${workspaceName}/${displayName}`);
-    console.timeEnd("Redirect to Workspace");
+    // Step 4: Log success and redirect
+    console.log("Workspace created successfully:", workspaceName);
+    res.status(201).json({
+      message: "Workspace created successfully.",
+      redirect: `/workspace/${workspaceName}/${displayName}`,
+    });
+
+    console.timeEnd("Total Request Time");
   } catch (error) {
-    console.error("Error in POST /home route:", error.stack || error.message);
+    console.error("Error in POST /create-workspace route:", error.stack || error.message);
 
-    // Send detailed error response for debugging (optional in production)
-    if (error.message === "Invalid workspace name") {
-      return res.status(400).send("Invalid workspace name. Please provide a valid name.");
-    }
-    if (error.message === "Workspace with this name already exists") {
-      return res.status(409).send("A workspace with this name already exists.");
-    }
-
-    res.status(500).send("Internal Server Error");
+    // Send appropriate error response
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
+
+
+app.post("/home", (req, res) => {
+  console.log("Redirecting POST /home to POST /create-workspace");
+  res.redirect(307, "/create-workspace"); // Temporary redirect with the same method
+});
+
 
 
 
