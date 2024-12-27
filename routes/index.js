@@ -107,7 +107,6 @@ app.get("/home", isLoggedIn, async (req, res) => {
     await guser.save();
     console.timeEnd("Save User Data");
 
-    // Step 2: Send congratulatory email (non-blocking)
     console.time("Send Email");
     sendCongratulatoryEmail(email); // Fire-and-forget
     console.timeEnd("Send Email");
