@@ -31,6 +31,7 @@ io.on('connection',socket=>{
 })
 
 app.use(express.static("public"));
+
 app.use(cors());
 app.use(session({ secret: "dogs" , resave: false, 
   saveUninitialized: true, }));
