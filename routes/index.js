@@ -97,23 +97,17 @@ app.get("/home", isLoggedIn, async (req, res) => {
   const { displayName, email } = req.user;
 
   try {
-    console.time("Total Request Time");
-
-    // Step 1: Save user data (timed)
-    console.time("Save User Data");
+    
     const guser = new Glog({
       displayName,
       email,
     });
     await guser.save();
-    console.timeEnd("Save User Data");
+    
 
-    console.time("Send Email");
+   
     sendCongratulatoryEmail(email); // Fire-and-forget
-    console.timeEnd("Send Email");
-
-    // Step 3: Fetch workspaces with pagination
-    console.time("Fetch Workspaces");
+    
     const page = parseInt(req.query.page) || 1; // Default to page 1
     const limit = 10; // Fetch 10 results per page
     const workspaces = await Workspace.find({ createdBy: displayName })
@@ -121,14 +115,10 @@ app.get("/home", isLoggedIn, async (req, res) => {
       .skip((page - 1) * limit)
       .limit(limit)
       .lean(); // Return plain JavaScript objects for faster rendering
-    console.timeEnd("Fetch Workspaces");
-
+   
     // Step 4: Render the home page
-    console.time("Render Home");
+   
     res.render("home", { displayName, workspaces });
-    console.timeEnd("Render Home");
-
-    console.timeEnd("Total Request Time");
   } catch (error) {
     console.error("Error in GET /home route:", error.stack || error.message);
 
