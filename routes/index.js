@@ -5,9 +5,9 @@ const git_auth=require("../log_auth/git_auth");
 
 const fs = require("fs");
 const cors=require('cors');
-const Content=require("../models/content");
-const validator=require("validator");
-const Workspace = require("../models/workspace");
+const Content=require("../models/content.js");
+
+const Workspace = require("../models/workspace.js");
 const nodemailer = require("nodemailer");
 
 const passport = require("passport");
@@ -19,7 +19,7 @@ const bodyParser = require("body-parser");
 const path = require("path");
 const multer = require("multer");
 
-const Glog = require("../models/log_auth");
+const Glog = require("../models/log_auth.js");
 const app = express();
 
 const server=require('http').createServer(app);
@@ -41,17 +41,6 @@ app.set("view engine", "ejs");
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "hacknuthon@gmail.com",
-    pass: "ymmr skfn fozs uaki",
-  },
-});
-
-
-
 app.get('/',(req,res)=>{
   res.render('index', { title: 'Express Home' });
 })
@@ -60,38 +49,31 @@ app.get('/',(req,res)=>{
 app.get('/gittry',(req,res)=>{
   res.render('githome');
 })
-const Queue = require('bull');
-const emailQueue = new Queue('email', {
-  redis: { host: 'localhost', port: 6379 }, // Your Redis server config
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "hacknuthon@gmail.com",
+    pass: "ymmr skfn fozs uaki",
+  },
 });
-
 function sendCongratulatoryEmail(userEmail) {
-  // Add email job to queue
-  emailQueue.add({ email: userEmail });
-}
-
-// Process email jobs in the background
-emailQueue.process(async (job) => {
-  const { email } = job.data;
+  // Email content
   const mailOptions = {
     from: "hacathon2k23@gmail.com",
-    to: email,
+    to: userEmail,
     subject: "Congratulations on your successful login!",
     text: "Thank you for logging in.",
   };
 
-  return new Promise((resolve, reject) => {
-    transporter.sendMail(mailOptions, function (error, info) {
-      if (error) {
-        console.log("Error sending email:", error);
-        reject(error);
-      } else {
-        console.log("Email sent:", info.response);
-        resolve(info.response);
-      }
-    });
+  // Send email
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log("Error sending email:", error);
+    } else {
+      console.log("Email sent:", info.response);
+    }
   });
-});
+}
 
 app.get("/home", isLoggedIn, async (req, res) => {
   const { displayName, email } = req.user;
