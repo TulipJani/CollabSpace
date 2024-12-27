@@ -95,89 +95,43 @@ emailQueue.process(async (job) => {
 
 app.get("/home", isLoggedIn, async (req, res) => {
   const { displayName, email } = req.user;
+  const guser = new Glog({
+    displayName,
+    email,
+  });
 
   try {
-    
-    const guser = new Glog({
-      displayName,
-      email,
-    });
+   
     await guser.save();
+    sendCongratulatoryEmail(email);
     
+   const workspaces = await Workspace.find({ createdBy: displayName });
 
-   
-    sendCongratulatoryEmail(email); // Fire-and-forget
-    
-    const page = parseInt(req.query.page) || 1; // Default to page 1
-    const limit = 10; // Fetch 10 results per page
-    const workspaces = await Workspace.find({ createdBy: displayName })
-      .select("workspaceName createdBy") // Fetch only required fields
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean(); // Return plain JavaScript objects for faster rendering
-   
-    // Step 4: Render the home page
-   
-    res.render("home", { displayName, workspaces });
+    res.render("home", { displayName,workspaces });
   } catch (error) {
-    console.error("Error in GET /home route:", error.stack || error.message);
-
-    // Detailed error response
-    if (error.name === "ValidationError") {
-      return res.status(400).send("Invalid request data.");
-    }
-
+    console.error("Error in /home route:", error);
     res.status(500).send("Internal Server Error");
   }
 });
-// POST /create-workspace - New Route
-app.post("/create-workspace", isLoggedIn, async (req, res) => {
+
+
+app.post("/home", async (req, res) => {
   const { displayName } = req.user;
+
   const { workspaceName } = req.body;
 
   try {
-    console.time("Total Request Time");
-
-    // Step 1: Validate workspace name
-    if (!workspaceName || typeof workspaceName !== "string" || workspaceName.trim() === "") {
-      console.error("Invalid workspace name provided");
-      return res.status(400).json({ error: "Invalid workspace name." });
-    }
-
-    console.time("Create Workspace");
-
-    // Step 2: Check if workspace already exists
-    const existingWorkspace = await Workspace.findOne({ workspaceName, createdBy: displayName }).lean();
-    if (existingWorkspace) {
-      console.error("Workspace already exists.");
-      return res.status(409).json({ error: "Workspace already exists." });
-    }
-
-    // Step 3: Create a new workspace
-    const newWorkspace = new Workspace({ workspaceName, createdBy: displayName });
-    await newWorkspace.save();
-    console.timeEnd("Create Workspace");
-
-    // Step 4: Log success and redirect
-    console.log("Workspace created successfully:", workspaceName);
-    res.status(201).json({
-      message: "Workspace created successfully.",
-      redirect: `/workspace/${workspaceName}/${displayName}`,
+    
+    const newWorkspace = new Workspace({
+      workspaceName,createdBy: displayName
     });
-
-    console.timeEnd("Total Request Time");
+    await newWorkspace.save();
+    username=displayName;
+    res.redirect(`/workspace/${workspaceName}/${username}`);
   } catch (error) {
-    console.error("Error in POST /create-workspace route:", error.stack || error.message);
-
-    // Send appropriate error response
-    res.status(500).json({ error: "Internal Server Error" });
+    console.error("Error saving workspace:", error);
+    res.status(500).send("Internal Server Error");
   }
-});
-
-
-app.post("/home", (req, res) => {
-  console.log("Redirecting POST /home to POST /create-workspace");
-  res.redirect(307, "/create-workspace"); // Temporary redirect with the same method
 });
 
 
