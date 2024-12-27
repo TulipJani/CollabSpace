@@ -1,15 +1,11 @@
 const mongoose = require('mongoose');
 
 // MongoDB Connection URL
-const con_url = "mongodb+srv://aakub1096:WeT2bzfibItBeoWB@collab-cluster.6pu29.mongodb.net/?retryWrites=true&w=majority&appName=collab-cluster";
+const con_url ="mongodb+srv://aakub1096:WeT2bzfibItBeoWB@collab-cluster.6pu29.mongodb.net/?retryWrites=true&w=majority&appName=collab-cluster";
 
 // Establish Connection
-const connect = mongoose.connect(con_url, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
+const connect = mongoose.connect(con_url);
 
-// Handle Connection Success and Errors
 connect
   .then(() => {
     console.log("Connected to MongoDB successfully (glogs database)");
